@@ -1,24 +1,43 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 import Home from "./pages/Home";
-import Login from "./pages/Login";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
-import Showcase from "./pages/Showcase";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <Router>
+      <div className="min-h-screen bg-gray-900 text-white">
 
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/showcase" element={<Showcase />} />
+        {/* NAVBAR */}
+        <nav className="flex justify-between items-center px-10 py-4 bg-gray-800">
+          <h1 className="text-2xl font-bold text-green-400">
+            BatchTrace Pro
+          </h1>
 
-      </Routes>
-    </BrowserRouter>
+          <div className="space-x-6">
+            <Link to="/">Home</Link>
+            <Link to="/about">About</Link>
+            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/login">Login</Link>
+            <Link to="/signup">Sign Up</Link>
+          </div>
+        </nav>
+
+        {/* ROUTES */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+        </Routes>
+
+      </div>
+    </Router>
   );
 }
 

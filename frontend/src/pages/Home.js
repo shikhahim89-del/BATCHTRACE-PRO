@@ -1,104 +1,59 @@
-import React, { useState } from "react";
-import "./Home.css";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import bg from "../assets/image_a42607a4.png";
 
-const Home = () => {
-  const navigate = useNavigate();
-
-  const [darkMode, setDarkMode] = useState(false);
-
-  // ✅ SAFE DUMMY DATA (NO FETCH = NO ERRORS)
-  const [items] = useState([
-    { id: 1, name: "Item 1" },
-    { id: 2, name: "Item 2" },
-    { id: 3, name: "Item 3" }
-  ]);
-
+function Home() {
   return (
-    <div className={darkMode ? "home-container dark" : "home-container"}>
+    <div>
 
-      {/* TOGGLE BUTTON */}
-      <button
-        className="toggle-btn"
-        onClick={() => setDarkMode(!darkMode)}
+      {/* HERO */}
+      <div
+        className="h-[70vh] bg-cover bg-center flex items-center justify-center"
+        style={{ backgroundImage: `url(${bg})` }}
       >
-        {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
-      </button>
-
-      {/* BACKGROUND EFFECT */}
-      <div className="bg-circle one"></div>
-      <div className="bg-circle two"></div>
-
-      {/* HERO SECTION */}
-      <div className="hero">
-
-        {/* LEFT SIDE */}
-        <div className="hero-left">
-          <h1 className="title">Batch Trace Pro 🚀</h1>
-
-          <p className="subtitle">
-            Smart batch tracking, management and visualization system.
-          </p>
-
-          <div className="btn-group">
-            <button onClick={() => navigate("/login")} className="btn primary">
-              Login
-            </button>
-
-            <button onClick={() => navigate("/about")} className="btn secondary">
-              About
-            </button>
-          </div>
+        <div className="bg-black bg-opacity-70 p-10 rounded text-center">
+          <h1 className="text-5xl font-bold mb-4">BatchTrace Pro</h1>
+          <p className="mb-4">Smart Batch Tracking System</p>
+          <button className="bg-green-500 px-6 py-2 rounded">
+            Get Started
+          </button>
         </div>
-
-        {/* RIGHT SIDE */}
-        <div className="hero-right">
-          <div className="card">
-
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png"
-              alt="logo"
-              className="logo"
-            />
-
-            <h2>Welcome 👋</h2>
-
-            <p>
-              Track batches and manage everything in one place.
-            </p>
-
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="card-btn"
-            >
-              Go to Dashboard
-            </button>
-
-            <button
-              onClick={() => navigate("/showcase")}
-              className="card-btn dark"
-            >
-              Showcase
-            </button>
-
-          </div>
-        </div>
-
       </div>
 
-      {/* ✅ API SECTION (SAFE STATIC DISPLAY) */}
-      <div style={{ marginTop: "30px", textAlign: "center", color: darkMode ? "white" : "black" }}>
-        <h3>Items</h3>
+      {/* FEATURES */}
+      <div className="py-16 bg-gray-900 text-center">
+        <h2 className="text-3xl font-bold mb-10">Features</h2>
 
-        {items.map((item) => (
-          <p key={item.id}>
-            {item.id} - {item.name}
-          </p>
-        ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-10">
+
+          <div className="bg-gray-800 p-6 rounded">
+            📊 Track batches in real-time
+          </div>
+
+          <div className="bg-gray-800 p-6 rounded">
+            🎓 Generate certificates easily
+          </div>
+
+          <div className="bg-gray-800 p-6 rounded">
+            📈 View analytics & reports
+          </div>
+
+          <div className="bg-gray-800 p-6 rounded">
+            👥 Manage users
+          </div>
+
+          <div className="bg-gray-800 p-6 rounded">
+            📁 Store batch records
+          </div>
+
+          <div className="bg-gray-800 p-6 rounded">
+            🔐 Secure login system
+          </div>
+
+        </div>
       </div>
 
     </div>
   );
-};
+}
 
 export default Home;

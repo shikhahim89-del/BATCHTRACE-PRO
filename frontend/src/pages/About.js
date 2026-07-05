@@ -1,64 +1,23 @@
-import { useNavigate } from "react-router-dom";
+import React from "react";
 
-export default function About() {
-  const navigate = useNavigate();
-
+function About() {
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2>About Batch Trace Pro</h2>
+    <div className="min-h-screen bg-gray-900 p-10 text-center">
 
-        <p>
-          This is a React-based project designed for batch tracking and UI/UX practice.
-        </p>
+      <h1 className="text-4xl mb-6">About</h1>
 
-        <div style={styles.box}>
-          <h4>Features</h4>
-          <ul>
-            <li>Login System</li>
-            <li>Dashboard Analytics</li>
-            <li>Component-based UI</li>
-          </ul>
-        </div>
+      <p className="mb-8">
+        BatchTrace Pro helps manage batches, users, and certificates efficiently.
+      </p>
 
-        <button style={styles.button} onClick={() => navigate("/")}>
-          Back to Home
-        </button>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gray-800 p-6 rounded">🚀 Mission</div>
+        <div className="bg-gray-800 p-6 rounded">🌍 Vision</div>
+        <div className="bg-gray-800 p-6 rounded">🔒 Security</div>
       </div>
+
     </div>
   );
 }
 
-const styles = {
-  container: {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#f0f4ff",
-    fontFamily: "Arial",
-  },
-
-  card: {
-    background: "white",
-    padding: "30px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-    textAlign: "center",
-    width: "300px",
-  },
-
-  box: {
-    textAlign: "left",
-    margin: "15px 0",
-  },
-
-  button: {
-    padding: "10px 15px",
-    border: "none",
-    borderRadius: "6px",
-    background: "#4facfe",
-    color: "white",
-    cursor: "pointer",
-  },
-};
+export default About;

@@ -1,63 +1,31 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from flask import Flask, request, jsonify
+from pymongo import MongoClient
 
-# Create Flask app
 app = Flask(__name__)
 
-# Enable CORS (VERY IMPORTANT for React)
-CORS(app)
+# ✅ Paste your CORRECT MongoDB link here (from Atlas)
+client = MongoClient("mongodb+srv://shikhahim89_db_user:zhZ2ZG97yDKQnSae@cluster0.y7dkuix.mongodb.net/batchtrace_pro")
 
-# Dummy data
-items = [
-    {"id": 1, "name": "Item 1"},
-    {"id": 2, "name": "Item 2"},
-    {"id": 3, "name": "Item 3"}
-]
+db = client["batchtrace_pro"]
+collection = db["data"]
 
-# ---------------- ROUTES ----------------
+# ✅ Home route
+@app.route("/")
+def home():
+    return "API is running 🚀"
 
-# GET all items
-@app.route("/api/items", methods=["GET"])
-def get_items():
-    return jsonify(items)
-
-# GET single item by id
-@app.route("/api/items/<int:item_id>", methods=["GET"])
-def get_item(item_id):
-    item = next((i for i in items if i["id"] == item_id), None)
-    if item:
-        return jsonify(item)
-    return jsonify({"error": "Item not found"}), 404
-
-# POST add new item
-@app.route("/api/items", methods=["POST"])
-def add_item():
+# ✅ Insert data
+@app.route("/add", methods=["POST"])
+def add_data():
     data = request.json
-    new_item = {
-        "id": len(items) + 1,
-        "name": data.get("name")
-    }
-    items.append(new_item)
-    return jsonify(new_item), 201
+    collection.insert_one(data)
+    return jsonify({"message": "Data added successfully"})
 
-# PUT update item
-@app.route("/api/items/<int:item_id>", methods=["PUT"])
-def update_item(item_id):
-    data = request.json
-    for item in items:
-        if item["id"] == item_id:
-            item["name"] = data.get("name")
-            return jsonify(item)
-    return jsonify({"error": "Item not found"}), 404
+# ✅ Get all data
+@app.route("/get", methods=["GET"])
+def get_data():
+    data = list(collection.find({}, {"_id": 0}))
+    return jsonify(data)
 
-# DELETE item
-@app.route("/api/items/<int:item_id>", methods=["DELETE"])
-def delete_item(item_id):
-    global items
-    items = [i for i in items if i["id"] != item_id]
-    return jsonify({"message": "Item deleted"})
-
-
-# ---------------- RUN SERVER ----------------
 if __name__ == "__main__":
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    app.run(debug=True)

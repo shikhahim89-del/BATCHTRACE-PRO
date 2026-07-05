@@ -1,65 +1,70 @@
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import bg from "../assets/image_a42607a4.png";
 
-export default function Dashboard() {
-  const navigate = useNavigate();
+function Dashboard() {
+
+  const addBatch = () => {
+    console.log("BUTTON CLICKED");
+  };
 
   return (
-    <div style={styles.container}>
-      <h2 style={{ marginBottom: "20px" }}>Dashboard</h2>
+    <div
+      className="min-h-screen bg-cover bg-center p-6"
+      style={{ backgroundImage: `url(${bg})` }}
+    >
+      <div className="bg-black bg-opacity-70 min-h-screen p-6 rounded-xl">
 
-      <div style={styles.grid}>
-        <div style={styles.card}>
-          <h3>Users</h3>
-          <p>120+</p>
+        {/* HEADER */}
+        <div className="flex justify-between mb-6">
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+
+          <button
+            onClick={addBatch}
+            className="bg-green-500 px-4 py-2 rounded"
+          >
+            + Add Batch
+          </button>
         </div>
 
-        <div style={styles.card}>
-          <h3>Projects</h3>
-          <p>8 Active</p>
+        {/* STATS */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white bg-opacity-10 p-6 rounded">24 Batches</div>
+          <div className="bg-white bg-opacity-10 p-6 rounded">120 Students</div>
+          <div className="bg-white bg-opacity-10 p-6 rounded">45 Certificates</div>
+          <div className="bg-white bg-opacity-10 p-6 rounded">8 Reports</div>
         </div>
 
-        <div style={styles.card}>
-          <h3>Performance</h3>
-          <p>92%</p>
+        {/* TABLE */}
+        <h2 className="text-xl mb-4">Recent Batches</h2>
+
+        <div className="bg-white bg-opacity-10 p-4 rounded">
+          <table className="w-full">
+            <thead>
+              <tr>
+                <th>Batch</th>
+                <th>Course</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+                <td>B001</td>
+                <td>React</td>
+                <td>Active</td>
+              </tr>
+              <tr>
+                <td>B002</td>
+                <td>Node</td>
+                <td>Pending</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+
       </div>
-
-      <button style={styles.button} onClick={() => navigate("/")}>
-        Back to Home
-      </button>
     </div>
   );
 }
 
-const styles = {
-  container: {
-    textAlign: "center",
-    marginTop: "60px",
-    fontFamily: "Arial",
-  },
-
-  grid: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "20px",
-    marginBottom: "30px",
-    flexWrap: "wrap",
-  },
-
-  card: {
-    width: "150px",
-    padding: "20px",
-    background: "#f4f6ff",
-    borderRadius: "10px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-  },
-
-  button: {
-    padding: "10px 15px",
-    border: "none",
-    borderRadius: "6px",
-    background: "#4facfe",
-    color: "white",
-    cursor: "pointer",
-  },
-};
+export default Dashboard;
