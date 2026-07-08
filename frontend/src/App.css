@@ -1,48 +1,72 @@
-body {
+/* RESET */
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* BODY */
+body {
   font-family: Arial, sans-serif;
-  background: linear-gradient(to right, #0f172a, #1e293b);
-  color: white;
+  background-color: #f5f5f5;
+  color: black; /* 👈 TEXT BLACK FIX */
 }
 
-/* Navbar */
-nav {
-  padding: 15px;
-  background: rgba(0,0,0,0.5);
+/* MAIN APP CONTAINER */
+.App {
   text-align: center;
 }
 
-nav a {
-  margin: 0 15px;
+/* INPUT FIELD */
+input {
+  padding: 10px;
+  font-size: 16px;
+  color: black;              /* 👈 TEXT FIX */
+  background-color: white;   /* 👈 BG FIX */
+  border: 1px solid black;
+  outline: none;
+}
+
+/* BUTTON */
+button {
+  padding: 10px 15px;
+  font-size: 14px;
+  background-color: black;
   color: white;
-  text-decoration: none;
-  font-weight: bold;
+  border: none;
+  cursor: pointer;
 }
 
-/* Hero */
-.hero {
-  text-align: center;
-  padding: 60px 20px;
+/* BUTTON HOVER */
+button:hover {
+  background-color: #333;
 }
 
-/* Cards */
-.cards {
+/* LIST CONTAINER */
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+/* LIST ITEM (BATCH BOX) */
+li {
+  background-color: white;
+  color: black;              /* 👈 TEXT FIX */
+  padding: 10px;
+  margin: 10px auto;
+  width: 300px;
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding: 20px;
+  justify-content: space-between;
+  border-radius: 5px;
+  border: 1px solid #ddd;
 }
 
-.card {
-  width: 250px;
-  padding: 20px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.1);
+/* DELETE BUTTON (OPTIONAL STYLE) */
+li button {
+  background-color: red;
+  color: white;
 }
 
-/* Footer */
-footer {
-  text-align: center;
-  padding: 20px;
+li button:hover {
+  background-color: darkred;
 }

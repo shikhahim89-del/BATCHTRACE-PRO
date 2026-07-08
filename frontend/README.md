@@ -1,36 +1,41 @@
 # BatchTrace Pro
 
 ## 📌 Project Description
-BatchTrace Pro is a web application built using Flask (backend) and React (frontend). It allows users to manage and track items using REST API.
+BatchTrace Pro is a web application built using Flask (backend) and React (frontend). It allows users to manage and track batches using REST APIs with full CRUD functionality.
+
+---
 
 ## 🚀 Features
-- CRUD operations (Create, Read, Update, Delete)
-- REST API with 6 endpoints
-- JSON responses with proper status codes
-- Frontend integration with React
+- Add new batches
+- View all batches
+- Delete batches
+- REST API integration with frontend
+- Data stored in MongoDB Atlas (cloud database)
+
+---
 
 ## 🛠 Tech Stack
-- Backend: Flask (Python)
 - Frontend: React
+- Backend: Flask (Python)
+- Database: MongoDB Atlas
 - API Testing: Thunder Client
 
-## 📂 Project Structure
-batchtrace-pro/
-│
-├── backend/
-├── frontend/
-└── README.md
+---
 
-## ⚙️ How to Run
+## 🗄️ Database Used
+We used **MongoDB Atlas** as our cloud database.
 
-### Backend
-cd backend  
-python app.py  
+### Why MongoDB?
+- Scalable and cloud-based
+- No local setup required
+- Easy integration with Flask
 
-### Frontend
-cd frontend  
-npm install  
-npm start  
+Unlike SQL databases, MongoDB uses **collections and documents** instead of tables and rows.
 
-## 📸 Screenshots
-(Add your screenshots here)
+---
+
+## ⚙️ Setup Database
+
+1. Create a MongoDB Atlas cluster
+2. Get your connection string
+3. Create a `.env` file and add:

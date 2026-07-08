@@ -1,31 +1,93 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from pymongo import MongoClient
+from bson import ObjectId
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
-# ✅ Paste your CORRECT MongoDB link here (from Atlas)
-client = MongoClient("mongodb+srv://shikhahim89_db_user:zhZ2ZG97yDKQnSae@cluster0.y7dkuix.mongodb.net/batchtrace_pro")
+# MongoDB connection
+client = MongoClient(os.getenv("MONGO_URI"))
+db = client["batchDB"]
+collection = db["batches"]
 
-db = client["batchtrace_pro"]
-collection = db["data"]
 
-# ✅ Home route
-@app.route("/")
+@app.route('/')
 def home():
-    return "API is running 🚀"
+    return "Backend running 🚀"
 
-# ✅ Insert data
-@app.route("/add", methods=["POST"])
-def add_data():
-    data = request.json
-    collection.insert_one(data)
-    return jsonify({"message": "Data added successfully"})
 
-# ✅ Get all data
-@app.route("/get", methods=["GET"])
-def get_data():
-    data = list(collection.find({}, {"_id": 0}))
+# ✅ GET
+@app.route('/api/batches', methods=['GET'])
+def get_batches():
+    data = list(collection.find())
+
+    for item in data:
+        item["_id"] = str(item["_id"])
+
     return jsonify(data)
+
+
+# ✅ POST
+@app.route('/api/batches', methods=['POST'])
+def add_batch():
+    data = request.get_json()   # 🔥 FIX (was request.json)
+
+    if not data or "batch" not in data:
+        return jsonify({"error": "Batch required"}), 400
+
+    new_batch = {
+        "batch": data["batch"],
+        "status": data.get("status", "Pending")
+    }
+
+    collection.insert_one(new_batch)
+
+    return jsonify({"message": "Batch added"})
+
+@app.route('/api/batches/<id>', methods=['PUT'])
+def update_batch(id):
+    data = request.get_json()
+
+    collection.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": {"status": data.get("status")}}
+    )
+
+    return jsonify({"message": "Updated"})
+
+    
+
+
+# ✅ DELETE
+@app.route('/api/batches/<id>', methods=['DELETE'])
+def delete_batch(id):
+    try:
+        collection.delete_one({"_id": ObjectId(id)})
+        return jsonify({"message": "Deleted"})
+    except:
+        return jsonify({"error": "Invalid ID"}), 400
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+
+    print("Signup Data:", data)  # 👈 terminal में दिखेगा
+
+    return jsonify({"message": "Signup success"})
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+
+    print("Login Data:", data)  # 👈 terminal में दिखेगा
+
+    return jsonify({"message": "Login success"})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
