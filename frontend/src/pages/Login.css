@@ -1,24 +1,54 @@
-.login-box {
-  width: 300px;
-  margin: 80px auto;
-  padding: 30px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-  backdrop-filter: blur(10px);
+.login-container {
+  background: #111827;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
 }
 
-.login-box input {
+.login-container h2 {
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+
+  font-size: 28px;   /* 🔥 size increase */
+}
+
+/* 🔥 MAIN FIX */
+.login-input {
   width: 100%;
-  margin: 10px 0;
   padding: 10px;
-  border: none;
-  border-radius: 5px;
-}
+  margin-bottom: 15px;
 
-.login-box button {
+  background: white;
+  color: black;
+
+  border-radius: 5px;
+  border: none;
+}
+.login-container button {
   width: 100%;
   padding: 10px;
   background: #38bdf8;
+  color: white;
+
   border: none;
   border-radius: 5px;
+}
+.login-container {
+  background: #0f172a;
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.login-container form {
+  background: #1e293b;
+  padding: 30px;
+  border-radius: 10px;
+
+  width: 100%;
+  max-width: 400px;   /* 🔥 ye important hai */
 }

@@ -20,9 +20,15 @@ function Home() {
       </div>
 
       {/* FEATURES */}
-      <div className="py-16 bg-gray-900 text-center">
-        <h2 className="text-3xl font-bold mb-10">Features</h2>
+      <div className="py-16 bg-gray-900 text-white text-center">
 
+        <h2 className="text-3xl font-bold mb-4">Features</h2>
+
+        <p className="text-gray-400 mb-10">
+          Powerful tools to manage batches efficiently and securely.
+        </p>
+
+        {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-10">
 
           <div className="bg-gray-800 p-6 rounded">
@@ -50,6 +56,9 @@ function Home() {
           </div>
 
         </div>
+
+        
+
       </div>
 
     </div>

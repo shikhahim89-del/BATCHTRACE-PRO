@@ -1,61 +1,87 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Login.css";
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    console.log("CLICKED LOGIN");
-
     try {
-      const res = await fetch("http://localhost:5000/login", {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-      console.log(data);
+      const data = await response.json();
 
-      alert("Login working ✅");
-    } catch (err) {
-      console.error(err);
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        alert("Login Successful ✅");
+        navigate("/dashboard");
+      } else {
+        alert(data.msg || "Login Failed ❌");
+      }
+    } catch (error) {
+      alert("Server error ❌");
     }
   };
 
+  // ✅ GOOGLE LOGIN FIXED
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:5000/api/auth/google";
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-white bg-opacity-10 p-8 rounded w-80">
-        <h2 className="text-2xl mb-4 text-center">Login</h2>
+    <div className="login-container">
+      <form onSubmit={handleLogin}>
+        <h2>Login</h2>
 
-        <form onSubmit={handleLogin}>
-          <input
-            className="w-full p-2 mb-3 rounded bg-gray-800"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+        <input
+          type="email"
+          name="email"
+          placeholder="Enter Email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
 
-          <input
-            className="w-full p-2 mb-3 rounded bg-gray-800"
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        <input
+          type="password"
+          name="password"
+          placeholder="Enter Password"
+          value={formData.password}
+          onChange={handleChange}
+          required
+        />
 
-          <button type="submit" className="w-full bg-green-500 p-2 rounded">
-            Login
-          </button>
-        </form>
-      </div>
+        <button type="submit">Login</button>
+
+        <p style={{ textAlign: "center" }}>OR</p>
+
+        {/* ✅ GOOGLE BUTTON */}
+        <button type="button" onClick={handleGoogleLogin}>
+          Sign in with Google
+        </button>
+      </form>
     </div>
   );
 }

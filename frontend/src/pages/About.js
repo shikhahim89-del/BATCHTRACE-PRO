@@ -1,19 +1,43 @@
 import React from "react";
+import "./About.css";
 
 function About() {
   return (
-    <div className="min-h-screen bg-gray-900 p-10 text-center">
+    <div className="about-container">
 
-      <h1 className="text-4xl mb-6">About</h1>
+      <div className="about-box">
 
-      <p className="mb-8">
-        BatchTrace Pro helps manage batches, users, and certificates efficiently.
-      </p>
+        <h1>About BatchTrace Pro</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gray-800 p-6 rounded">🚀 Mission</div>
-        <div className="bg-gray-800 p-6 rounded">🌍 Vision</div>
-        <div className="bg-gray-800 p-6 rounded">🔒 Security</div>
+        <p className="about-text">
+  BatchTrace Pro is a modern web application designed to manage batches,
+  users, and certifications efficiently.
+</p>
+
+<p className="about-text">
+  It provides a secure and user-friendly platform to track progress
+  and streamline workflows.
+</p>
+
+        <div className="cards">
+
+          <div className="card">
+            <h3>🚀 Mission</h3>
+            <p>To simplify batch management.</p>
+          </div>
+
+          <div className="card">
+            <h3>🌍 Vision</h3>
+            <p>To build scalable systems.</p>
+          </div>
+
+          <div className="card">
+            <h3>🔒 Security</h3>
+            <p>We protect user data securely.</p>
+          </div>
+
+        </div>
+
       </div>
 
     </div>

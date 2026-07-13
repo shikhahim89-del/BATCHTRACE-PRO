@@ -30,6 +30,7 @@ const Navbar = () => {
         <NavLink to="/signup" className={({isActive}) => isActive ? "text-green-400" : "hover:text-green-400"}>
           Signup
         </NavLink>
+        <Link to="/about">About</Link>
 
       </div>
     </div>

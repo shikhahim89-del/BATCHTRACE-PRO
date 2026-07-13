@@ -8,10 +8,8 @@ function Signup() {
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    console.log("CLICKED SIGNUP");
-
     try {
-      const res = await fetch("http://localhost:5000/signup", {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -24,47 +22,53 @@ function Signup() {
       });
 
       const data = await res.json();
-      console.log(data);
 
-      alert("Signup working ✅");
+      if (res.ok) {
+        alert("Signup Successful ✅");
+      } else {
+        alert(data.error || "Signup Failed ❌");
+      }
+
     } catch (err) {
-      console.error(err);
+      alert("Server error ❌");
     }
   };
 
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-white bg-opacity-10 p-8 rounded w-80">
-        <h2 className="text-2xl mb-4 text-center">Sign Up</h2>
+    <div>
+      <h2>Signup</h2>
 
-        <form onSubmit={handleSignup}>
-          <input
-            className="w-full p-2 mb-3 rounded bg-gray-800"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+      <form onSubmit={handleSignup}>
 
-          <input
-            className="w-full p-2 mb-3 rounded bg-gray-800"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+        <input
+  placeholder="Name"
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+  style={{ color: "black", backgroundColor: "white" }}
+/>
 
-          <input
-            className="w-full p-2 mb-3 rounded bg-gray-800"
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+<input
+  placeholder="Email"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  style={{ color: "black", backgroundColor: "white" }}
+/>
 
-          <button type="submit" className="w-full bg-green-500 p-2 rounded">
-            Sign Up
-          </button>
-        </form>
-      </div>
+<input
+  placeholder="Password"
+  type="password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  style={{ color: "black", backgroundColor: "white" }}
+/>
+
+        <button type="submit">
+          Signup
+        </button>
+
+      </form>
+
     </div>
   );
 }

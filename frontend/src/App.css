@@ -39,7 +39,7 @@ button {
 
 /* BUTTON HOVER */
 button:hover {
-  background-color: #333;
+  background-color: black;
 }
 
 /* LIST CONTAINER */
@@ -63,8 +63,8 @@ li {
 
 /* DELETE BUTTON (OPTIONAL STYLE) */
 li button {
-  background-color: red;
-  color: white;
+  background-color: white;
+  color: black;
 }
 
 li button:hover {

@@ -1,49 +1,58 @@
+require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const session = require("express-session");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+
+// ===== BASIC =====
 app.use(express.json());
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true
+}));
 
-// 🔗 MongoDB connect (replace your URI)
-mongoose.connect("mongodb+srv://shikhahim89-del:zhZ2ZG97yDKQnSae@cluster0.mongodb.net/batchtrace-pro")
-.then(() => console.log("MongoDB Connected"))
-.catch(err => console.log(err));
-
-// 📦 Schema
-const batchSchema = new mongoose.Schema({
-  name: String,
-  course: String,
-  year: String
+app.get("/", (req, res) => {
+  res.send("SERVER OK ✅");
 });
 
-const Batch = mongoose.model("Batch", batchSchema);
+// ===== SESSION =====
+app.use(session({
+  secret: process.env.SESSION_SECRET || "secret",
+  resave: false,
+  saveUninitialized: false
+}));
 
-// ✅ CREATE
-app.post("/api/batches", async (req, res) => {
-  const batch = new Batch(req.body);
-  await batch.save();
-  res.json(batch);
-});
+// ===== PASSPORT =====
+app.use(passport.initialize());
+app.use(passport.session());
 
-// ✅ READ
-app.get("/api/batches", async (req, res) => {
-  const data = await Batch.find();
-  res.json(data);
-});
+// ===== GOOGLE STRATEGY =====
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:5000/api/auth/google/callback"
+  },
+  (accessToken, refreshToken, profile, done) => {
+    return done(null, profile);
+  }
+));
 
-// ✅ UPDATE
-app.put("/api/batches/:id", async (req, res) => {
-  const updated = await Batch.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
-});
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
 
-// ✅ DELETE
-app.delete("/api/batches/:id", async (req, res) => {
-  await Batch.findByIdAndDelete(req.params.id);
-  res.json({ message: "Deleted" });
-});
+// ===== ROUTES =====
+const authRoutes = require("./routes/auth");
+app.use("/api/auth", authRoutes);
 
-// 🚀 Server
-app.listen(5000, () => console.log("Server running on 5000"));
+// ===== MONGO =====
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected ✅"))
+  .catch(err => console.log(err));
+
+// ===== START =====
+app.listen(5000, () => console.log("Server running on 5000 🚀"));

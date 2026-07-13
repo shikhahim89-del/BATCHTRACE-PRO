@@ -1,19 +1,53 @@
 import React, { useState, useEffect } from "react";
+import "./Dashboard.css";
 
 function Dashboard() {
   const [batches, setBatches] = useState([]);
   const [batchName, setBatchName] = useState("");
 
+  // ✅ HANDLE TOKEN + GOOGLE LOGIN
   useEffect(() => {
-    fetchBatches();
+    const params = new URLSearchParams(window.location.search);
+    const googleToken = params.get("token");
+
+    let finalToken = localStorage.getItem("token");
+
+    // Save Google token if present
+    if (googleToken) {
+      localStorage.setItem("token", googleToken);
+      finalToken = googleToken;
+
+      // clean URL
+      window.history.replaceState({}, document.title, "/dashboard");
+    }
+
+    if (!finalToken) {
+      alert("Login first ❌");
+      window.location.href = "/";
+      return;
+    }
+
+    fetchBatches(finalToken);
   }, []);
 
   // ✅ FETCH
-  const fetchBatches = async () => {
+  const fetchBatches = async (tokenParam) => {
+    const token = tokenParam || localStorage.getItem("token");
+
     try {
-      const res = await fetch("http://localhost:5000/api/batches");
+      const res = await fetch("http://localhost:5000/api/batches", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const data = await res.json();
-      setBatches(data);
+
+      if (Array.isArray(data)) {
+        setBatches(data);
+      } else {
+        setBatches([]);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -28,6 +62,7 @@ function Dashboard() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ batch: batchName }),
       });
@@ -44,6 +79,9 @@ function Dashboard() {
     try {
       await fetch(`http://localhost:5000/api/batches/${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
 
       fetchBatches();
@@ -52,15 +90,17 @@ function Dashboard() {
     }
   };
 
-  // ✅ UPDATE (Pending ↔ Approved)
+  // ✅ UPDATE
   const updateStatus = async (id, currentStatus) => {
-    const newStatus = currentStatus === "Pending" ? "Approved" : "Pending";
+    const newStatus =
+      currentStatus === "Pending" ? "Approved" : "Pending";
 
     try {
       await fetch(`http://localhost:5000/api/batches/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -71,64 +111,66 @@ function Dashboard() {
     }
   };
 
+  // ✅ LOGOUT
+  const logout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  };
+
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>📦 Batch + Certification Dashboard</h2>
+    <div className="dashboard-container">
+      <div className="dashboard-box">
 
-      {/* INPUT */}
-      <input
-        type="text"
-        placeholder="Enter batch name"
-        value={batchName}
-        onChange={(e) => setBatchName(e.target.value)}
-        style={{
-          padding: "10px",
-          marginRight: "10px",
-          border: "1px solid black",
-          color: "black",
-        }}
-      />
+        {/* HEADER */}
+        <div className="dashboard-header">
+          <h2>📦 Batch + Certification Dashboard</h2>
+          <button
+            className="dashboard-button logout-btn"
+            onClick={logout}
+          >
+            Logout
+          </button>
+        </div>
 
-      <button onClick={addBatch}>Add</button>
+        {/* INPUT */}
+        <div className="dashboard-input-group">
+          <input
+            type="text"
+            placeholder="Enter batch name"
+            className="dashboard-input"
+            value={batchName}
+            onChange={(e) => setBatchName(e.target.value)}
+          />
+          <button
+            className="dashboard-button"
+            onClick={addBatch}
+          >
+            Add
+          </button>
+        </div>
 
-      {/* LIST */}
-      <ul>
-        {batches.map((b) => (
-          <li key={b._id}>
-            <b>{b.batch}</b> — {b.status}
+        {/* LIST */}
+        {batches.length > 0 ? (
+          <ul>
+            {batches.map((b) => (
+              <li key={b._id}>
+                <b>{b.batch}</b> — {b.status}
 
-            {/* UPDATE BUTTON */}
-            <button
-              onClick={() => updateStatus(b._id, b.status)}
-              style={{
-                marginLeft: "10px",
-                backgroundColor: "green",
-                color: "white",
-                border: "none",
-                padding: "5px",
-                cursor: "pointer",
-              }}
-            >
-              Toggle Status
-            </button>
+                <button onClick={() => updateStatus(b._id, b.status)}>
+                  Toggle
+                </button>
 
-            {/* DELETE BUTTON */}
-            <button
-              onClick={() => deleteBatch(b._id)}
-              style={{
-                marginLeft: "10px",
-                backgroundColor: "red",
-                color: "white",
-                border: "none",
-                padding: "5px",
-                cursor: "pointer",
-              }}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+                <button onClick={() => deleteBatch(b._id)}>
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No batches found</p>
+        )}
+
+      </div>
     </div>
   );
 }

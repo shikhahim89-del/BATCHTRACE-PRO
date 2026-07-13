@@ -1,0 +1,58 @@
+/* Full page center */
+.about-container {
+  min-height: 100vh;
+  background: #0f172a;
+  color: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.about-box h1 {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+.about-text {
+  margin-bottom: 15px;
+  color: #cbd5f5;
+  line-height: 1.6;
+}
+
+/* Main box */
+.about-box {
+  text-align: center;
+  max-width: 900px;
+  padding: 40px;
+}
+
+/* Cards layout */
+.cards {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+/* Single card */
+.card {
+  background: #1e293b;
+  padding: 20px;
+  width: 250px;
+  border-radius: 10px;
+
+  transition: 0.3s;
+}
+
+/* Hover effect */
+.card:hover {
+  transform: translateY(-5px);
+  background: #334155;
+}
+.card h3 {
+  margin-bottom: 10px;
+}
+
+.card p {
+  color: #cbd5f5;
+}

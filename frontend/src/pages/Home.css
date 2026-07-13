@@ -1,144 +1,56 @@
+/* BASE */
 .home-container {
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
-  position: relative;
-  background: #f7f9fc;
+  background: #0f172a; /* dark base */
+  color: #fff;
 }
 
-.hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 1100px;
-  gap: 40px;
-}
-
-/* LEFT */
-.hero-left {
-  flex: 1;
-}
-
-.title {
-  font-size: 48px;
-  font-weight: 800;
-  margin-bottom: 15px;
-}
-
-.subtitle {
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 25px;
-  line-height: 1.5;
-}
-
-/* BUTTONS */
-.btn-group {
-  display: flex;
-  gap: 15px;
-}
-
-.btn {
-  padding: 10px 18px;
-  border: none;
-  cursor: pointer;
-  border-radius: 8px;
-}
-
-.primary {
-  background: #4f46e5;
-  color: white;
-}
-
-.secondary {
-  background: #e5e7eb;
-}
-
-/* RIGHT CARD */
-.hero-right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.card {
-  width: 280px;
-  padding: 25px;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+/* FEATURES SECTION */
+.features-subtext {
   text-align: center;
+  color: #94a3b8;
+  margin-bottom: 30px;
+  font-size: 14px;
 }
 
-.logo {
-  width: 70px;
-  height: 70px;
-  object-fit: contain;
+/* GRID CARD (COMMON STYLE) */
+.feature-card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+  transition: 0.3s ease;
+  cursor: pointer;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  background: #334155;
+}
+
+/* ICON */
+.icon {
+  font-size: 28px;
   margin-bottom: 10px;
+  display: block;
 }
 
-.card-btn {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+/* DIVIDER */
+.divider {
+  width: 50%;
+  margin: 40px auto;
+  border: 1px solid #1e293b;
 }
 
-.card-btn.dark {
-  background: #111;
-  color: white;
-}
-/* DARK MODE */
-.home-container.dark {
-  background: #121212;
-  color: #ffffff;
+
+
+/* BUTTON HOVER GLOBAL */
+button:hover {
+  opacity: 0.9;
 }
 
-.home-container.dark .subtitle {
-  color: #ccc;
-}
-
-.home-container.dark .card {
-  background: #1e1e1e;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-}
-
-.home-container.dark .secondary {
-  background: #333;
-  color: white;
-}
-
-.home-container.dark .card-btn.dark {
-  background: #fff;
-  color: #000;
-}
-
-/* TOGGLE BUTTON */
-.toggle-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #111;
-  color: white;
-}
-
-/* RESPONSIVE FIX (IMPORTANT FOR YOUR PDF) */
+/* RESPONSIVE */
 @media (max-width: 768px) {
-  .hero {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .hero-right {
-    margin-top: 20px;
+  .divider {
+    width: 80%;
   }
 }

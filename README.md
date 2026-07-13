@@ -1,40 +1,65 @@
-# BatchTrace Pro
+# 🔐 BatchTrace Pro (Auth + Dashboard)
 
 ## 📌 Project Description
-BatchTrace Pro is a full-stack web application built for managing batch records efficiently.  
-It provides CRUD operations with a clean dashboard interface and backend API integration.
+BatchTrace Pro is a full-stack web application built using **React (Frontend)** and **Flask (Backend)**.
+
+It includes a complete authentication system with JWT and Google OAuth, along with a dashboard to manage batch records.
 
 ---
 
-## 🚀 Deployed Link
+## 🚀 Features
+
+### 🔑 Authentication
+- User Registration
+- User Login
+- Logout
+- JWT-based Authentication
+- Google OAuth Login
+- Protected Routes (Frontend + Backend)
+- Rate Limiting (5 requests/min)
+- Input Validation
+
+---
+
+### 📦 Dashboard (Protected)
+- Add Batch
+- View Batches
+- Delete Batch
+- Update Batch Status
+
+---
+
+## 🌐 Deployed Link
 https://batchtrace-pro.vercel.app
 
 ---
 
-## 🗄️ Database Choice & Why
+## 🧠 Tech Stack
 
-We are using a simple structured JSON-based / backend-managed data approach (Flask API layer).
+### Frontend
+- React.js
 
-### Why this approach:
-- Easy to integrate with frontend (React)
-- Lightweight for internship project
-- Fast CRUD operations
-- Easy to extend to MongoDB/MySQL in future
+### Backend
+- Flask (Python)
+- Flask-JWT-Extended
+- Flask-Limiter
+- Authlib (Google OAuth)
 
----
-
-## 📊 Database Schema
-
-### Entity: Batch
-## 🧩 Schema Diagram
-| Field   | Type   | Description        |
-|--------|--------|--------------------|
-| name   | String | Batch name         |
-| course | String | Course name        |
-| year   | String | Academic year      |
+### Database
+- MongoDB Atlas
 
 ---
 
+## ⚙️ Run Locally
 
+### 🔹 Backend
 
+```bash
+cd backend
+pip install -r requirements.txt
+python app.py
 
+MONGO_URI=your_mongo_uri
+JWT_SECRET=your_secret
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_secret
