@@ -26,10 +26,17 @@ function App() {
           <div className="space-x-6">
             <Link to="/">Home</Link>
             <Link to="/about">About</Link>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/profile">Profile</Link>
-            <Link to="/login">Login</Link>
-            <Link to="/signup">Sign Up</Link>
+            {localStorage.getItem("token") ? (
+  <>
+    <Link to="/dashboard">Dashboard</Link>
+    <Link to="/profile">Profile</Link>
+  </>
+) : (
+  <>
+    <Link to="/login">Login</Link>
+    <Link to="/signup">Sign Up</Link>
+  </>
+)}
           </div>
         </nav>
 

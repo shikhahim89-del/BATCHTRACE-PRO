@@ -60,21 +60,29 @@ router.post("/login",
   }
 );
 
-// ✅ GOOGLE LOGIN (ONLY HERE)
+// ✅ GOOGLE LOGIN
 router.get("/google",
   passport.authenticate("google", {
     scope: ["profile", "email"]
   })
 );
 
-// ✅ GOOGLE CALLBACK
+// ✅ GOOGLE CALLBACK (FIXED)
 router.get("/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "/login"
+    session: false,
+    failureRedirect: "http://localhost:3000/" // ✅ frontend login page
   }),
   (req, res) => {
-    res.redirect("http://localhost:3000/dashboard");
+
+    // 🔥 CREATE TOKEN
+    const token = jwt.sign(
+      { id: req.user._id },
+      "secret",
+      { expiresIn: "1h" }
+    );
+
+    // ✅ SEND TOKEN TO FRONTEND
+    res.redirect(`http://localhost:3000/dashboard?token=${token}`);
   }
 );
-
-module.exports = router;

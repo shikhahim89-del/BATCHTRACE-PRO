@@ -4,168 +4,154 @@ import "./Dashboard.css";
 function Dashboard() {
   const [batches, setBatches] = useState([]);
   const [batchName, setBatchName] = useState("");
+  const [loadingId, setLoadingId] = useState(null);
+  const [aiResults, setAiResults] = useState({});
+  const [error, setError] = useState("");
 
-  // ✅ HANDLE TOKEN + GOOGLE LOGIN
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const googleToken = params.get("token");
-
-    let finalToken = localStorage.getItem("token");
-
-    // Save Google token if present
-    if (googleToken) {
-      localStorage.setItem("token", googleToken);
-      finalToken = googleToken;
-
-      // clean URL
-      window.history.replaceState({}, document.title, "/dashboard");
-    }
-
-    if (!finalToken) {
-      alert("Login first ❌");
-      window.location.href = "/";
-      return;
-    }
-
-    fetchBatches(finalToken);
+    fetchBatches();
   }, []);
 
-  // ✅ FETCH
-  const fetchBatches = async (tokenParam) => {
-    const token = tokenParam || localStorage.getItem("token");
+  const getToken = () => localStorage.getItem("token");
 
+  const fetchBatches = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/batches", {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${getToken()}`
+        }
       });
 
       const data = await res.json();
-
-      if (Array.isArray(data)) {
-        setBatches(data);
-      } else {
-        setBatches([]);
-      }
-    } catch (error) {
-      console.error(error);
+      setBatches(Array.isArray(data) ? data : []);
+    } catch {
+      setError("Failed to load ❌");
     }
   };
 
-  // ✅ ADD
   const addBatch = async () => {
-    if (!batchName) return;
+    if (!batchName.trim()) return;
 
     try {
       await fetch("http://localhost:5000/api/batches", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getToken()}`
         },
-        body: JSON.stringify({ batch: batchName }),
+        body: JSON.stringify({
+          batch: batchName,
+          product: "Milk",
+          expiry: "2026-12-01"
+        }),
       });
 
       setBatchName("");
       fetchBatches();
-    } catch (error) {
-      console.error(error);
+    } catch {
+      setError("Add failed ❌");
     }
   };
 
-  // ✅ DELETE
   const deleteBatch = async (id) => {
     try {
       await fetch(`http://localhost:5000/api/batches/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+          Authorization: `Bearer ${getToken()}`
+        }
       });
 
       fetchBatches();
-    } catch (error) {
-      console.error(error);
+    } catch {
+      setError("Delete failed ❌");
     }
   };
 
-  // ✅ UPDATE
-  const updateStatus = async (id, currentStatus) => {
-    const newStatus =
-      currentStatus === "Pending" ? "Approved" : "Pending";
+  const analyzeBatch = async (batch) => {
+    setLoadingId(batch._id);
 
     try {
-      await fetch(`http://localhost:5000/api/batches/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
+      const res = await fetch("http://localhost:5000/api/ai/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: `Batch ${batch.batch}, product ${batch.product}, expiry ${batch.expiry}`
+        }),
       });
 
-      fetchBatches();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+      const data = await res.json();
 
-  // ✅ LOGOUT
-  const logout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/";
+      setAiResults(prev => ({
+        ...prev,
+        [batch._id]: data.analysis || "No result"
+      }));
+
+    } catch {
+      setAiResults(prev => ({
+        ...prev,
+        [batch._id]: "Error ❌"
+      }));
+    }
+
+    setLoadingId(null);
   };
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-box">
 
-        {/* HEADER */}
-        <div className="dashboard-header">
-          <h2>📦 Batch + Certification Dashboard</h2>
-          <button
-            className="dashboard-button logout-btn"
-            onClick={logout}
-          >
-            Logout
-          </button>
-        </div>
+        <h2>Batch Dashboard</h2>
 
-        {/* INPUT */}
         <div className="dashboard-input-group">
           <input
             type="text"
             placeholder="Enter batch name"
-            className="dashboard-input"
             value={batchName}
             onChange={(e) => setBatchName(e.target.value)}
+            className="dashboard-input"
           />
-          <button
-            className="dashboard-button"
-            onClick={addBatch}
-          >
-            Add
-          </button>
+          <button onClick={addBatch}>Add</button>
         </div>
 
-        {/* LIST */}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+
         {batches.length > 0 ? (
-          <ul>
-            {batches.map((b) => (
-              <li key={b._id}>
-                <b>{b.batch}</b> — {b.status}
+          <table className="batch-table">
+            <thead>
+              <tr>
+                <th>Batch</th>
+                <th>Status</th>
+                <th>AI Result</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-                <button onClick={() => updateStatus(b._id, b.status)}>
-                  Toggle
-                </button>
+            <tbody>
+              {batches.map((b) => (
+                <tr key={b._id}>
+                  <td>{b.batch}</td>
+                  <td>{b.status}</td>
 
-                <button onClick={() => deleteBatch(b._id)}>
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
+                  <td>
+                    {loadingId === b._id
+                      ? "Loading..."
+                      : aiResults[b._id] || "—"}
+                  </td>
+
+                  <td>
+                    <button onClick={() => analyzeBatch(b)}>
+                      Analyze
+                    </button>
+
+                    <button onClick={() => deleteBatch(b._id)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
           <p>No batches found</p>
         )}

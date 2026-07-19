@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
+console.log("LOGIN LOADED");
 
 function Login() {
   const navigate = useNavigate();
@@ -9,6 +10,15 @@ function Login() {
     email: "",
     password: "",
   });
+
+  // ✅ CHECK TOKEN (AUTO LOGIN)
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    navigate("/dashboard");
+  }
+}, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,6 +29,7 @@ function Login() {
     }));
   };
 
+  // ✅ LOGIN FUNCTION
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -45,14 +56,15 @@ function Login() {
     }
   };
 
-  // ✅ GOOGLE LOGIN FIXED
+  // ✅ GOOGLE LOGIN
   const handleGoogleLogin = () => {
+    localStorage.removeItem("token"); // prevent auto redirect bug
     window.location.href = "http://localhost:5000/api/auth/google";
   };
 
   return (
     <div className="login-container">
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleLogin} className="login-form">
         <h2>Login</h2>
 
         <input
@@ -75,12 +87,22 @@ function Login() {
 
         <button type="submit">Login</button>
 
-        <p style={{ textAlign: "center" }}>OR</p>
+        <p className="divider">OR</p>
 
-        {/* ✅ GOOGLE BUTTON */}
         <button type="button" onClick={handleGoogleLogin}>
           Sign in with Google
         </button>
+
+        {/* ✅ GO TO SIGNUP */}
+        <p style={{ marginTop: "10px" }}>
+          Don't have an account?{" "}
+          <span
+            style={{ color: "blue", cursor: "pointer" }}
+            onClick={() => navigate("/signup")}
+          >
+            Sign Up
+          </span>
+        </p>
       </form>
     </div>
   );
