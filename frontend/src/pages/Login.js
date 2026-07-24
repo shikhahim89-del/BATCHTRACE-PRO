@@ -1,35 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-console.log("LOGIN LOADED");
 
 function Login() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
+    password: ""
   });
-
-  // ✅ CHECK TOKEN (AUTO LOGIN)
-  useEffect(() => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    navigate("/dashboard");
-  }
-}, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  // ✅ LOGIN FUNCTION
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -51,23 +39,23 @@ function Login() {
       } else {
         alert(data.msg || "Login Failed ❌");
       }
-    } catch (error) {
+    } catch {
       alert("Server error ❌");
     }
   };
 
-  // ✅ GOOGLE LOGIN
   const handleGoogleLogin = () => {
-    localStorage.removeItem("token"); // prevent auto redirect bug
+    localStorage.removeItem("token");
     window.location.href = "http://localhost:5000/api/auth/google";
   };
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleLogin} className="login-form">
-        <h2>Login</h2>
+    <div className="auth-container">
+      <form onSubmit={handleLogin} className="auth-box">
+        <h2 className="auth-title">Login</h2>
 
         <input
+          className="auth-input"
           type="email"
           name="email"
           placeholder="Enter Email"
@@ -77,6 +65,7 @@ function Login() {
         />
 
         <input
+          className="auth-input"
           type="password"
           name="password"
           placeholder="Enter Password"
@@ -85,23 +74,23 @@ function Login() {
           required
         />
 
-        <button type="submit">Login</button>
+        <button className="auth-button" type="submit">
+          Login
+        </button>
 
         <p className="divider">OR</p>
 
-        <button type="button" onClick={handleGoogleLogin}>
+        <button
+          type="button"
+          className="auth-button google-btn"
+          onClick={handleGoogleLogin}
+        >
           Sign in with Google
         </button>
 
-        {/* ✅ GO TO SIGNUP */}
-        <p style={{ marginTop: "10px" }}>
+        <p className="switch-text">
           Don't have an account?{" "}
-          <span
-            style={{ color: "blue", cursor: "pointer" }}
-            onClick={() => navigate("/signup")}
-          >
-            Sign Up
-          </span>
+          <span onClick={() => navigate("/signup")}>Sign Up</span>
         </p>
       </form>
     </div>

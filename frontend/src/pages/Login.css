@@ -1,41 +1,4 @@
-.login-container {
-  background: #111827;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 20px;
-}
-
-.login-container h2 {
-  color: white;
-  text-align: center;
-  margin-bottom: 20px;
-
-  font-size: 28px;   /* 🔥 size increase */
-}
-
-/* 🔥 MAIN FIX */
-.login-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-
-  background: white;
-  color: black;
-
-  border-radius: 5px;
-  border: none;
-}
-.login-container button {
-  width: 100%;
-  padding: 10px;
-  background: #38bdf8;
-  color: white;
-
-  border: none;
-  border-radius: 5px;
-}
+/* FULL CENTER FIX */
 .login-container {
   background: #0f172a;
   min-height: 100vh;
@@ -44,11 +7,69 @@
   justify-content: center;
   align-items: center;
 }
+
+/* FORM BOX */
 .login-container form {
   background: #1e293b;
   padding: 30px;
   border-radius: 10px;
 
   width: 100%;
-  max-width: 400px;   /* 🔥 ye important hai */
+  max-width: 400px;
+
+  display: flex;
+  flex-direction: column;   /* 🔥 IMPORTANT */
+}
+
+/* TITLE */
+.login-container h2 {
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* INPUT FIX 🔥 */
+.login-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+
+  background: #ffffff;
+  color: #000000;   /* 🔥 TEXT BLACK */
+
+  border-radius: 5px;
+  border: none;
+
+  font-size: 14px;
+}
+
+/* PLACEHOLDER FIX 🔥 */
+.login-input::placeholder {
+  color: #555;
+}
+
+/* BUTTON */
+.login-container button {
+  width: 100%;
+  padding: 12px;
+  background: #38bdf8;
+  color: white;
+
+  border: none;
+  border-radius: 5px;
+
+  cursor: pointer;
+}
+.login-input {
+  color: black !important;
+  background: white !important;
+}
+/* FORCE FIX 🔥 */
+input {
+  color: black !important;
+  background-color: white !important;
+}
+
+input::placeholder {
+  color: #555 !important;
 }

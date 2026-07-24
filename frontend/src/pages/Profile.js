@@ -6,15 +6,15 @@ function Profile() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://127.0.0.1:5000/profile", {
+    fetch("http://127.0.0.1:5000/api/auth/profile", {
       method: "GET",
       headers: {
-        "Authorization": `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then(res => res.json())
       .then(data => {
-        console.log(data);
+        console.log("PROFILE:", data);
         setUser(data);
       })
       .catch(err => console.log(err));

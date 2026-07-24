@@ -3,51 +3,29 @@ from flask_cors import CORS
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from authlib.integrations.flask_client import OAuth
-from functools import wraps
 import jwt
 from datetime import datetime, timedelta
-import requests
+from functools import wraps
+from bson.objectid import ObjectId
 import os
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SESSION_SECRET", "batchtrace_session")
-
 CORS(app)
+
 bcrypt = Bcrypt(app)
-limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day"])
 
-JWT_SECRET = os.getenv("JWT_SECRET", "batchtrace_secret")
-
-# ---------------- GOOGLE OAUTH ----------------
-oauth = OAuth(app)
-
-google = oauth.register(
-    name="google",
-    client_id=os.getenv("GOOGLE_CLIENT_ID"),
-    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-    client_kwargs={"scope": "openid email profile"}
-)
+JWT_SECRET = os.getenv("JWT_SECRET", "secret123")
 
 # ---------------- DATABASE ----------------
 client = MongoClient(os.getenv("MONGO_URI"))
 db = client["batchDB"]
 
-collection = db["batches"]
 users_collection = db["users"]
-jobs_collection = db["jobs"]
+batches_collection = db["batches"]
 
-# ---------------- HOME ----------------
-@app.route("/")
-def home():
-    return "Backend running 🚀"
-
-# ---------------- TOKEN CHECK ----------------
+# ---------------- TOKEN ----------------
 def token_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -57,41 +35,56 @@ def token_required(func):
             return jsonify({"error": "Token missing"}), 401
 
         try:
-            token = auth.replace("Bearer ", "")
+            token = auth.split(" ")[1]
             decoded = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
             request.user = decoded
-        except Exception:
+        except Exception as e:
+            print("TOKEN ERROR:", e)
             return jsonify({"error": "Invalid token"}), 401
 
         return func(*args, **kwargs)
     return wrapper
 
-# ---------------- AUTH ----------------
+# ---------------- REGISTER ----------------
 @app.route("/api/auth/register", methods=["POST"])
 def register():
     data = request.get_json()
 
-    if users_collection.find_one({"email": data.get("email")}):
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
+    name = data.get("name", "").strip()
+
+    if not email or not password or not name:
+        return jsonify({"error": "All fields required"}), 400
+
+    if users_collection.find_one({"email": email}):
         return jsonify({"error": "User exists"}), 400
 
-    hashed = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+    hashed = bcrypt.generate_password_hash(password).decode("utf-8")
 
     users_collection.insert_one({
-        "name": data["name"],
-        "email": data["email"],
+        "name": name,
+        "email": email,
         "password": hashed
     })
 
-    return jsonify({"message": "Registered"}), 201
+    return jsonify({"message": "Signup successful"}), 201
 
-
+# ---------------- LOGIN ----------------
 @app.route("/api/auth/login", methods=["POST"])
 def login():
     data = request.get_json()
-    user = users_collection.find_one({"email": data.get("email")})
 
-    if not user or not bcrypt.check_password_hash(user["password"], data.get("password")):
-        return jsonify({"error": "Invalid credentials"}), 401
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
+
+    user = users_collection.find_one({"email": email})
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if not bcrypt.check_password_hash(user["password"], password):
+        return jsonify({"error": "Wrong password"}), 401
 
     token = jwt.encode({
         "user_id": str(user["_id"]),
@@ -101,105 +94,143 @@ def login():
 
     return jsonify({"token": token})
 
-# ---------------- ADD BATCH ----------------
-@app.route("/api/batches", methods=["POST"])
-def add_batch():
-    data = request.get_json()
+# ---------------- PROFILE ----------------
+@app.route("/api/auth/profile")
+@token_required
+def profile():
+    user = users_collection.find_one({"email": request.user["email"]})
 
-    expiry = data.get("expiry")
-    status = "Pending"
+    if not user:
+        return jsonify({"error": "User not found"}), 404
 
-    if expiry:
-        exp_date = datetime.strptime(expiry, "%Y-%m-%d")
-
-        if exp_date < datetime.utcnow():
-            status = "Rejected"
-        elif exp_date - datetime.utcnow() < timedelta(days=5):
-            status = "Pending"
-        else:
-            status = "Approved"
-
-    collection.insert_one({
-        "batch": data["batch"],
-        "product": data.get("product", ""),
-        "expiry": expiry,
-        "status": status
+    return jsonify({
+        "id": str(user["_id"]),
+        "name": user["name"],
+        "email": user["email"]
     })
 
-    return jsonify({"message": "Batch added", "status": status})
+# ---------------- ADD BATCH ----------------
+@app.route("/api/batches", methods=["POST"])
+@token_required
+def add_batch():
+    try:
+        data = request.get_json()
+        print("👉 ADD DATA:", data)
 
-# ---------------- GET BATCHES (FIXED) ----------------
+        # ✅ HANDLE BOTH batch OR name (frontend safety)
+        batch_name = data.get("batch") or data.get("name") or "Unknown Batch"
+        product = data.get("product") or "Not specified"
+        expiry = data.get("expiry")
+
+        status = "Pending"
+
+        # ✅ SAFE DATE LOGIC
+        if expiry:
+            try:
+                exp_date = datetime.strptime(expiry, "%Y-%m-%d")
+
+                if exp_date < datetime.utcnow():
+                    status = "Rejected"
+                elif exp_date - datetime.utcnow() < timedelta(days=5):
+                    status = "Pending"
+                else:
+                    status = "Approved"
+            except:
+                expiry = None  # avoid crash
+
+        result = batches_collection.insert_one({
+            "batch": batch_name,
+            "product": product,
+            "expiry": expiry,
+            "status": status,
+            "user_email": request.user["email"]
+        })
+
+        return jsonify({
+            "message": "Batch added",
+            "id": str(result.inserted_id),
+            "status": status
+        })
+
+    except Exception as e:
+        print("ADD ERROR:", e)
+        return jsonify({"error": "Add failed"}), 500
+
+# ---------------- GET BATCHES ----------------
 @app.route("/api/batches", methods=["GET"])
+@token_required
 def get_batches():
-    batches = list(collection.find())
+    batches = list(batches_collection.find({
+        "user_email": request.user["email"]
+    }))
 
     for b in batches:
         b["_id"] = str(b["_id"])
 
     return jsonify(batches)
 
-# ---------------- VERIFY ----------------
-@app.route("/api/verify/<batch_id>")
-def verify(batch_id):
-    batch = collection.find_one({"batch": batch_id})
-
-    if not batch:
-        return jsonify({"error": "Not found"}), 404
-
-    return jsonify({
-        "batch": batch["batch"],
-        "status": batch["status"]
-    })
-
-# ---------------- AI ANALYSIS ----------------
-@app.route("/api/ai/analyze", methods=["POST"])
-def analyze():
+# ---------------- DELETE ----------------
+@app.route("/api/batches/<id>", methods=["DELETE"])
+@token_required
+def delete_batch(id):
     try:
-        data = request.json
-        text = data.get("text")
+        batches_collection.delete_one({"_id": ObjectId(id)})
+        return jsonify({"message": "Deleted"})
+    except Exception as e:
+        print("DELETE ERROR:", e)
+        return jsonify({"error": "Delete failed"}), 500
 
-        if not text:
-            return jsonify({"error": "Missing text"}), 400
+# ---------------- ANALYZE ----------------
+@app.route("/api/batches/analyze/<batch_id>", methods=["POST"])
+@token_required
+def analyze_batch(batch_id):
+    try:
+        batch = batches_collection.find_one({"_id": ObjectId(batch_id)})
 
-        prompt = f"""
-        Analyze this batch:
-        {text}
+        if not batch:
+            return jsonify({"error": "Batch not found"}), 404
 
-        Give:
-        Risk Level + Reason + Final Status (short)
-        """
+        batch_name = batch.get("batch", "Unknown")
+        product = batch.get("product", "Unknown")
+        expiry = batch.get("expiry", "N/A")
 
-        response = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "llama-3.1-8b-instant",
-                "messages": [{"role": "user", "content": prompt}]
+        # ✅ SMART ANALYSIS
+        if expiry and expiry != "N/A":
+            try:
+                exp_date = datetime.strptime(expiry, "%Y-%m-%d")
+
+                if exp_date < datetime.utcnow():
+                    result = f"❌ EXPIRED | {batch_name} ({product})"
+                    status = "Rejected"
+                else:
+                    result = f"✅ SAFE | {batch_name} ({product}) | Expiry: {expiry}"
+                    status = "Approved"
+
+            except:
+                result = "⚠️ Invalid expiry format"
+                status = "Pending"
+        else:
+            result = "⚠️ No expiry provided"
+            status = "Pending"
+
+        batches_collection.update_one(
+            {"_id": ObjectId(batch_id)},
+            {
+                "$set": {
+                    "status": status,
+                    "ai_result": result
+                }
             }
         )
 
-        result = response.json()
-
-        if "choices" not in result:
-            return jsonify({"error": "AI failed"}), 500
-
-        output = result["choices"][0]["message"]["content"]
-
-        return jsonify({"analysis": output})
+        return jsonify({
+            "message": "Analyzed",
+            "result": result
+        })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/batches/<id>", methods=["DELETE"])
-def delete_batch(id):
-    from bson.objectid import ObjectId
-
-    collection.delete_one({"_id": ObjectId(id)})
-
-    return jsonify({"message": "Deleted"})
+        print("ANALYZE ERROR:", e)
+        return jsonify({"error": "Analyze failed"}), 500
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
