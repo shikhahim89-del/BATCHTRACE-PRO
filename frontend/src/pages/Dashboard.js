@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Dashboard.css";
 
-// ✅ ADD THIS LINE (VERY IMPORTANT)
-const API = import.meta.env.VITE_API_URL;
+// ✅ FIXED API HANDLING (fallback added)
+const API =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+console.log("🚀 API URL:", API);
 
 function Dashboard() {
   const [batches, setBatches] = useState([]);
@@ -15,25 +18,31 @@ function Dashboard() {
 
   const token = localStorage.getItem("token");
 
+  // ✅ FETCH
   const fetchBatches = useCallback(async () => {
     try {
       setLoading(true);
+
       const res = await fetch(`${API}/api/batches`, {
         headers: {
           Authorization: "Bearer " + token,
         },
       });
 
+      if (!res.ok) throw new Error("Fetch failed");
+
       const data = await res.json();
       setBatches(Array.isArray(data) ? data : []);
       setError("");
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Failed to load batches ❌");
     } finally {
       setLoading(false);
     }
   }, [token]);
 
+  // ✅ LOAD
   useEffect(() => {
     if (!token) {
       alert("Login first ❌");
@@ -43,6 +52,7 @@ function Dashboard() {
     }
   }, [token, fetchBatches]);
 
+  // ✅ ADD
   const addBatch = async () => {
     if (!batchName.trim()) {
       setError("Enter batch name ⚠️");
@@ -50,7 +60,7 @@ function Dashboard() {
     }
 
     try {
-      await fetch(`${API}/api/batches`, {
+      const res = await fetch(`${API}/api/batches`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,17 +73,21 @@ function Dashboard() {
         }),
       });
 
+      if (!res.ok) throw new Error("Add failed");
+
       setBatchName("");
       setProduct("");
       setExpiry("");
 
       fetchBatches();
       setError("");
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Add failed ❌");
     }
   };
 
+  // ✅ ANALYZE
   const analyzeBatch = async (id) => {
     setLoadingId(id);
 
@@ -106,37 +120,43 @@ function Dashboard() {
         )
       );
     } catch (err) {
+      console.error(err);
       setError(err.message || "Analyze failed ❌");
     } finally {
       setLoadingId(null);
     }
   };
 
+  // ✅ DELETE
   const deleteBatch = async (id) => {
     if (!window.confirm("Delete this batch?")) return;
 
     try {
-      await fetch(`${API}/api/batches/${id}`, {
+      const res = await fetch(`${API}/api/batches/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: "Bearer " + token,
         },
       });
 
+      if (!res.ok) throw new Error("Delete failed");
+
       setBatches((prev) => prev.filter((b) => b._id !== id));
       setError("");
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Delete failed ❌");
     }
   };
 
+  // ✅ UPDATE
   const updateBatch = async (id) => {
     const newName = prompt("Enter new batch name");
 
     if (!newName) return;
 
     try {
-      await fetch(`${API}/api/batches/${id}`, {
+      const res = await fetch(`${API}/api/batches/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -145,12 +165,15 @@ function Dashboard() {
         body: JSON.stringify({ batch: newName }),
       });
 
+      if (!res.ok) throw new Error("Update failed");
+
       setBatches((prev) =>
         prev.map((b) =>
           b._id === id ? { ...b, batch: newName } : b
         )
       );
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Update failed ❌");
     }
   };
@@ -192,7 +215,9 @@ function Dashboard() {
         {loading ? (
           <p className="no-data">Loading batches...</p>
         ) : batches.length === 0 ? (
-          <p className="no-data">No batches yet 🚫 — Add your first batch</p>
+          <p className="no-data">
+            No batches yet 🚫 — Add your first batch
+          </p>
         ) : (
           <table className="batch-table">
             <thead>

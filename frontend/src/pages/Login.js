@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-// ✅ ADD THIS
-const API = import.meta.env.VITE_API_URL;
+// ✅ FIXED API (fallback added)
+const API =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+console.log("🚀 API URL:", API);
 
 function Login() {
   const navigate = useNavigate();
@@ -21,6 +24,7 @@ function Login() {
     }));
   };
 
+  // ✅ LOGIN
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -35,22 +39,25 @@ function Login() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        alert("Login Successful ✅");
-        navigate("/dashboard");
-      } else {
-        alert(data.msg || "Login Failed ❌");
+      if (!response.ok) {
+        throw new Error(data.msg || "Login Failed ❌");
       }
-    } catch {
-      alert("Server error ❌");
+
+      localStorage.setItem("token", data.token);
+      alert("Login Successful ✅");
+      navigate("/dashboard");
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Server error ❌");
     }
   };
 
+  // ✅ GOOGLE LOGIN
   const handleGoogleLogin = () => {
     localStorage.removeItem("token");
 
-    // ✅ IMPORTANT FIX
+    // redirect to backend
     window.location.href = `${API}/api/auth/google`;
   };
 
@@ -95,7 +102,9 @@ function Login() {
 
         <p className="switch-text">
           Don't have an account?{" "}
-          <span onClick={() => navigate("/signup")}>Sign Up</span>
+          <span onClick={() => navigate("/signup")}>
+            Sign Up
+          </span>
         </p>
       </form>
     </div>
