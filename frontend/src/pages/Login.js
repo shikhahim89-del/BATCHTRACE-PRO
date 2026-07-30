@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
+// ✅ ADD THIS
+const API = import.meta.env.VITE_API_URL;
+
 function Login() {
   const navigate = useNavigate();
 
@@ -22,7 +25,7 @@ function Login() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,7 +49,9 @@ function Login() {
 
   const handleGoogleLogin = () => {
     localStorage.removeItem("token");
-    window.location.href = "http://localhost:5000/api/auth/google";
+
+    // ✅ IMPORTANT FIX
+    window.location.href = `${API}/api/auth/google`;
   };
 
   return (

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Dashboard.css";
 
+// ✅ ADD THIS LINE (VERY IMPORTANT)
+const API = import.meta.env.VITE_API_URL;
+
 function Dashboard() {
   const [batches, setBatches] = useState([]);
   const [batchName, setBatchName] = useState("");
@@ -15,7 +18,7 @@ function Dashboard() {
   const fetchBatches = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/batches", {
+      const res = await fetch(`${API}/api/batches`, {
         headers: {
           Authorization: "Bearer " + token,
         },
@@ -47,7 +50,7 @@ function Dashboard() {
     }
 
     try {
-      await fetch("http://localhost:5000/api/batches", {
+      await fetch(`${API}/api/batches`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,15 +78,12 @@ function Dashboard() {
     setLoadingId(id);
 
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/batches/analyze/${id}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        }
-      );
+      const res = await fetch(`${API}/api/batches/analyze/${id}`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
 
       const data = await res.json();
 
@@ -116,7 +116,7 @@ function Dashboard() {
     if (!window.confirm("Delete this batch?")) return;
 
     try {
-      await fetch(`http://localhost:5000/api/batches/${id}`, {
+      await fetch(`${API}/api/batches/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: "Bearer " + token,
@@ -131,31 +131,29 @@ function Dashboard() {
   };
 
   const updateBatch = async (id) => {
-  const newName = prompt("Enter new batch name");
+    const newName = prompt("Enter new batch name");
 
-  if (!newName) return;
+    if (!newName) return;
 
-  try {
-    await fetch(`http://localhost:5000/api/batches/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({ batch: newName }),
-    });
+    try {
+      await fetch(`${API}/api/batches/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+        body: JSON.stringify({ batch: newName }),
+      });
 
-    // ✅ instant UI update
-    setBatches((prev) =>
-      prev.map((b) =>
-        b._id === id ? { ...b, batch: newName } : b
-      )
-    );
-
-  } catch {
-    setError("Update failed ❌");
-  }
-};
+      setBatches((prev) =>
+        prev.map((b) =>
+          b._id === id ? { ...b, batch: newName } : b
+        )
+      );
+    } catch {
+      setError("Update failed ❌");
+    }
+  };
 
   return (
     <div className="dashboard-container">
@@ -212,7 +210,6 @@ function Dashboard() {
                 <tr key={b._id}>
                   <td>{b.batch}</td>
 
-                  {/* ✅ Certification auto from expiry */}
                   <td>
                     {new Date(b.expiry) > new Date()
                       ? "Certified ✅"

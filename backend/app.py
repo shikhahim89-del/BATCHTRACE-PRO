@@ -115,16 +115,13 @@ def profile():
 def add_batch():
     try:
         data = request.get_json()
-        print("👉 ADD DATA:", data)
 
-        # ✅ HANDLE BOTH batch OR name (frontend safety)
         batch_name = data.get("batch") or data.get("name") or "Unknown Batch"
         product = data.get("product") or "Not specified"
         expiry = data.get("expiry")
 
         status = "Pending"
 
-        # ✅ SAFE DATE LOGIC
         if expiry:
             try:
                 exp_date = datetime.strptime(expiry, "%Y-%m-%d")
@@ -136,7 +133,7 @@ def add_batch():
                 else:
                     status = "Approved"
             except:
-                expiry = None  # avoid crash
+                expiry = None
 
         result = batches_collection.insert_one({
             "batch": batch_name,
@@ -194,7 +191,6 @@ def analyze_batch(batch_id):
         product = batch.get("product", "Unknown")
         expiry = batch.get("expiry", "N/A")
 
-        # ✅ SMART ANALYSIS
         if expiry and expiry != "N/A":
             try:
                 exp_date = datetime.strptime(expiry, "%Y-%m-%d")
@@ -231,6 +227,11 @@ def analyze_batch(batch_id):
     except Exception as e:
         print("ANALYZE ERROR:", e)
         return jsonify({"error": "Analyze failed"}), 500
+
+# ---------------- HOME ROUTE ----------------
+@app.route("/")
+def home():
+    return "Backend is running 🚀"
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":

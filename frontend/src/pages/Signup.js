@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
+// ✅ ADD THIS
+const API = import.meta.env.VITE_API_URL;
+
 function Signup() {
   const navigate = useNavigate();
 
@@ -13,7 +16,7 @@ function Signup() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -25,6 +28,8 @@ function Signup() {
 
       if (res.ok) {
         alert("Signup Successful ✅");
+
+        // ✅ redirect to login
         navigate("/");
       } else {
         alert(data.error || "Signup Failed ❌");
