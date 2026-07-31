@@ -12,7 +12,9 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+
+# ✅ FIXED CORS (IMPORTANT)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 bcrypt = Bcrypt(app)
 
@@ -48,192 +50,71 @@ def token_required(func):
 # ---------------- REGISTER ----------------
 @app.route("/api/auth/register", methods=["POST"])
 def register():
-    data = request.get_json()
+    try:
+        data = request.get_json(force=True)  # ✅ FIX
 
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "").strip()
-    name = data.get("name", "").strip()
+        if not data:
+            return jsonify({"error": "No data received"}), 400
 
-    if not email or not password or not name:
-        return jsonify({"error": "All fields required"}), 400
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "").strip()
+        name = data.get("name", "").strip()
 
-    if users_collection.find_one({"email": email}):
-        return jsonify({"error": "User exists"}), 400
+        if not email or not password or not name:
+            return jsonify({"error": "All fields required"}), 400
 
-    hashed = bcrypt.generate_password_hash(password).decode("utf-8")
+        if users_collection.find_one({"email": email}):
+            return jsonify({"error": "User exists"}), 400
 
-    users_collection.insert_one({
-        "name": name,
-        "email": email,
-        "password": hashed
-    })
+        hashed = bcrypt.generate_password_hash(password).decode("utf-8")
 
-    return jsonify({"message": "Signup successful"}), 201
+        users_collection.insert_one({
+            "name": name,
+            "email": email,
+            "password": hashed
+        })
+
+        return jsonify({"message": "Signup successful"}), 201
+
+    except Exception as e:
+        print("REGISTER ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
 
 # ---------------- LOGIN ----------------
 @app.route("/api/auth/login", methods=["POST"])
 def login():
-    data = request.get_json()
-
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "").strip()
-
-    user = users_collection.find_one({"email": email})
-
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    if not bcrypt.check_password_hash(user["password"], password):
-        return jsonify({"error": "Wrong password"}), 401
-
-    token = jwt.encode({
-        "user_id": str(user["_id"]),
-        "email": user["email"],
-        "exp": datetime.utcnow() + timedelta(hours=1)
-    }, JWT_SECRET, algorithm="HS256")
-
-    return jsonify({"token": token})
-
-# ---------------- PROFILE ----------------
-@app.route("/api/auth/profile")
-@token_required
-def profile():
-    user = users_collection.find_one({"email": request.user["email"]})
-
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    return jsonify({
-        "id": str(user["_id"]),
-        "name": user["name"],
-        "email": user["email"]
-    })
-
-# ---------------- ADD BATCH ----------------
-@app.route("/api/batches", methods=["POST"])
-@token_required
-def add_batch():
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)  # ✅ FIX
 
-        batch_name = data.get("batch") or data.get("name") or "Unknown Batch"
-        product = data.get("product") or "Not specified"
-        expiry = data.get("expiry")
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "").strip()
 
-        status = "Pending"
+        user = users_collection.find_one({"email": email})
 
-        if expiry:
-            try:
-                exp_date = datetime.strptime(expiry, "%Y-%m-%d")
+        if not user:
+            return jsonify({"error": "User not found"}), 404
 
-                if exp_date < datetime.utcnow():
-                    status = "Rejected"
-                elif exp_date - datetime.utcnow() < timedelta(days=5):
-                    status = "Pending"
-                else:
-                    status = "Approved"
-            except:
-                expiry = None
+        if not bcrypt.check_password_hash(user["password"], password):
+            return jsonify({"error": "Wrong password"}), 401
 
-        result = batches_collection.insert_one({
-            "batch": batch_name,
-            "product": product,
-            "expiry": expiry,
-            "status": status,
-            "user_email": request.user["email"]
-        })
+        token = jwt.encode({
+            "user_id": str(user["_id"]),
+            "email": user["email"],
+            "exp": datetime.utcnow() + timedelta(hours=1)
+        }, JWT_SECRET, algorithm="HS256")
 
-        return jsonify({
-            "message": "Batch added",
-            "id": str(result.inserted_id),
-            "status": status
-        })
+        return jsonify({"token": token})
 
     except Exception as e:
-        print("ADD ERROR:", e)
-        return jsonify({"error": "Add failed"}), 500
+        print("LOGIN ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
 
-# ---------------- GET BATCHES ----------------
-@app.route("/api/batches", methods=["GET"])
-@token_required
-def get_batches():
-    batches = list(batches_collection.find({
-        "user_email": request.user["email"]
-    }))
-
-    for b in batches:
-        b["_id"] = str(b["_id"])
-
-    return jsonify(batches)
-
-# ---------------- DELETE ----------------
-@app.route("/api/batches/<id>", methods=["DELETE"])
-@token_required
-def delete_batch(id):
-    try:
-        batches_collection.delete_one({"_id": ObjectId(id)})
-        return jsonify({"message": "Deleted"})
-    except Exception as e:
-        print("DELETE ERROR:", e)
-        return jsonify({"error": "Delete failed"}), 500
-
-# ---------------- ANALYZE ----------------
-@app.route("/api/batches/analyze/<batch_id>", methods=["POST"])
-@token_required
-def analyze_batch(batch_id):
-    try:
-        batch = batches_collection.find_one({"_id": ObjectId(batch_id)})
-
-        if not batch:
-            return jsonify({"error": "Batch not found"}), 404
-
-        batch_name = batch.get("batch", "Unknown")
-        product = batch.get("product", "Unknown")
-        expiry = batch.get("expiry", "N/A")
-
-        if expiry and expiry != "N/A":
-            try:
-                exp_date = datetime.strptime(expiry, "%Y-%m-%d")
-
-                if exp_date < datetime.utcnow():
-                    result = f"❌ EXPIRED | {batch_name} ({product})"
-                    status = "Rejected"
-                else:
-                    result = f"✅ SAFE | {batch_name} ({product}) | Expiry: {expiry}"
-                    status = "Approved"
-
-            except:
-                result = "⚠️ Invalid expiry format"
-                status = "Pending"
-        else:
-            result = "⚠️ No expiry provided"
-            status = "Pending"
-
-        batches_collection.update_one(
-            {"_id": ObjectId(batch_id)},
-            {
-                "$set": {
-                    "status": status,
-                    "ai_result": result
-                }
-            }
-        )
-
-        return jsonify({
-            "message": "Analyzed",
-            "result": result
-        })
-
-    except Exception as e:
-        print("ANALYZE ERROR:", e)
-        return jsonify({"error": "Analyze failed"}), 500
-
-# ---------------- HOME ROUTE ----------------
+# ---------------- HOME ----------------
 @app.route("/")
 def home():
     return "Backend is running 🚀"
 
-# ---------------- RUN (FIXED FOR RENDER) ----------------
+# ---------------- RUN ----------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
