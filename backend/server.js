@@ -9,10 +9,14 @@ const cors = require("cors");
 
 const app = express();
 
-// ===== BASIC =====
+// ✅ IMPORTANT
 app.use(express.json());
+
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: [
+    "http://localhost:3000",
+    "https://batchtrace-pro-v2.vercel.app"
+  ],
   credentials: true
 }));
 
@@ -20,22 +24,22 @@ app.get("/", (req, res) => {
   res.send("SERVER OK ✅");
 });
 
-// ===== SESSION =====
+// SESSION
 app.use(session({
   secret: process.env.SESSION_SECRET || "secret",
   resave: false,
   saveUninitialized: false
 }));
 
-// ===== PASSPORT =====
+// PASSPORT
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ===== GOOGLE STRATEGY =====
+// GOOGLE
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:5000/api/auth/google/callback"
+    callbackURL: "https://YOUR-REAL-BACKEND.onrender.com/api/auth/google/callback"
   },
   (accessToken, refreshToken, profile, done) => {
     return done(null, profile);
@@ -45,14 +49,14 @@ passport.use(new GoogleStrategy({
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// ===== ROUTES =====
+// ROUTES
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
 
-// ===== MONGO =====
+// MONGO
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log(err));
 
-// ===== START =====
+// START
 app.listen(5000, () => console.log("Server running on 5000 🚀"));

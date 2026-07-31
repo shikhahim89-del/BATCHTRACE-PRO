@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-// ✅ FIXED API (fallback added)
+// ✅ FINAL FIXED API
 const API =
-  import.meta.env.VITE_API_URL || "http://localhost:5000";
+  import.meta.env.VITE_API_URL || "https://your-backend.onrender.com";
 
-console.log("🚀 API URL:", API);
+console.log("🚀 API URL (Login):", API);
 
 function Login() {
   const navigate = useNavigate();
@@ -24,7 +24,6 @@ function Login() {
     }));
   };
 
-  // ✅ LOGIN
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -53,11 +52,8 @@ function Login() {
     }
   };
 
-  // ✅ GOOGLE LOGIN
   const handleGoogleLogin = () => {
     localStorage.removeItem("token");
-
-    // redirect to backend
     window.location.href = `${API}/api/auth/google`;
   };
 

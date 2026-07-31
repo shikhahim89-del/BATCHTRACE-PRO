@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-// ✅ ADD THIS
-const API = import.meta.env.VITE_API_URL;
+// ✅ FINAL FIXED API
+const API =
+  import.meta.env.VITE_API_URL || "https://your-backend.onrender.com";
+
+console.log("🚀 API URL (Signup):", API);
 
 function Signup() {
   const navigate = useNavigate();
@@ -28,13 +31,12 @@ function Signup() {
 
       if (res.ok) {
         alert("Signup Successful ✅");
-
-        // ✅ redirect to login
         navigate("/");
       } else {
-        alert(data.error || "Signup Failed ❌");
+        alert(data.msg || "Signup Failed ❌");
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Server error ❌");
     }
   };
