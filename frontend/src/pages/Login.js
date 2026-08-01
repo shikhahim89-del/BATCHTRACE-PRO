@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-// ✅ FINAL FIXED API
-const API =
-  import.meta.env.VITE_API_URL || "https://your-backend.onrender.com";
+// ✅ ONLY THIS (NO fallback)
+const API = import.meta.env.VITE_API_URL;
 
 console.log("🚀 API URL (Login):", API);
 

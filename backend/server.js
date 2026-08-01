@@ -9,7 +9,7 @@ const cors = require("cors");
 
 const app = express();
 
-// ✅ IMPORTANT
+// ✅ Middleware
 app.use(express.json());
 
 app.use(cors({
@@ -24,22 +24,22 @@ app.get("/", (req, res) => {
   res.send("SERVER OK ✅");
 });
 
-// SESSION
+// ✅ Session
 app.use(session({
   secret: process.env.SESSION_SECRET || "secret",
   resave: false,
   saveUninitialized: false
 }));
 
-// PASSPORT
+// ✅ Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// GOOGLE
+// ✅ Google Strategy (🔥 FIXED URL)
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "https://YOUR-REAL-BACKEND.onrender.com/api/auth/google/callback"
+    callbackURL: `${process.env.BASE_URL}/api/auth/google/callback`
   },
   (accessToken, refreshToken, profile, done) => {
     return done(null, profile);
@@ -49,14 +49,15 @@ passport.use(new GoogleStrategy({
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// ROUTES
+// ✅ Routes
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
 
-// MONGO
+// ✅ MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log(err));
 
-// START
-app.listen(5000, () => console.log("Server running on 5000 🚀"));
+// ✅ PORT FIX (🔥 VERY IMPORTANT)
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on ${PORT} 🚀`));

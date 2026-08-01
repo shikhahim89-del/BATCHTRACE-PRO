@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./Dashboard.css";
 
 // ✅ FIXED API HANDLING (fallback added)
-const API =
-  import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API = "https://batchtrace-pro.onrender.com";
 
 console.log("🚀 API URL:", API);
 
