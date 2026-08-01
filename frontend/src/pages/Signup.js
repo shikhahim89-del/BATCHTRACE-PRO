@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
 // ✅ ONLY THIS (NO fallback)
-const API = import.meta.env.VITE_API_URL;
+const API = "https://batchtrace-pro.onrender.com";
 
 console.log("🚀 API URL (Signup):", API);
 
