@@ -79,3 +79,23 @@ npm start
 No hardcoded data is used — all data comes from API
 Fully responsive design (mobile, tablet, desktop)
 Authenticated dashboard access only
+
+## 🌐 Live Deployment
+
+- Frontend URL: https://batchtrace-pro.vercel.app
+- Backend URL: https://batchtrace-pro.onrender.com
+
+## ⚙️ Tech Stack
+
+- Frontend: React (Vite)
+- Backend: Node.js + Express
+- Database: MongoDB
+- Deployment:
+  - Frontend: Vercel
+  - Backend: Render
+
+## ⚠️ Known Limitations (Free Tier)
+
+- Render backend sleeps after 15 minutes of inactivity
+- First request may take 30–60 seconds to respond
+- Limited performance due to free hosting
