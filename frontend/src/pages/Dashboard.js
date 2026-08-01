@@ -53,39 +53,48 @@ function Dashboard() {
 
   // ✅ ADD
   const addBatch = async () => {
-    if (!batchName.trim()) {
-      setError("Enter batch name ⚠️");
-      return;
+  if (!batchName.trim() || !product.trim() || !expiry) {
+    setError("All fields required ⚠️");
+    return;
+  }
+
+  try {
+    console.log("TOKEN:", token);
+
+    const res = await fetch(`${API}/api/batches`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        batchName: batchName,   // ✅ FIXED KEY
+        product: product,
+        expiry: expiry,
+      }),
+    });
+
+    const data = await res.json();
+    console.log("SERVER RESPONSE:", data);
+
+    if (!res.ok) {
+      throw new Error(data.error || "Add failed");
     }
 
-    try {
-      const res = await fetch(`${API}/api/batches`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify({
-          batch: batchName,
-          product,
-          expiry,
-        }),
-      });
+    // ✅ CLEAR INPUTS
+    setBatchName("");
+    setProduct("");
+    setExpiry("");
 
-      if (!res.ok) throw new Error("Add failed");
+    // ✅ REFRESH LIST
+    fetchBatches();
 
-      setBatchName("");
-      setProduct("");
-      setExpiry("");
-
-      fetchBatches();
-      setError("");
-    } catch (err) {
-      console.error(err);
-      setError("Add failed ❌");
-    }
-  };
-
+    setError("");
+  } catch (err) {
+    console.error(err);
+    setError(err.message || "Add failed ❌");
+  }
+};
   // ✅ ANALYZE
   const analyzeBatch = async (id) => {
     setLoadingId(id);

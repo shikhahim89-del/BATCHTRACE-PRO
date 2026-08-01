@@ -9,55 +9,80 @@ const cors = require("cors");
 
 const app = express();
 
-// ✅ Middleware
+
+// ✅ MIDDLEWARE
 app.use(express.json());
 
-app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://batchtrace-pro-v2.vercel.app"
-  ],
-  credentials: true
-}));
+// ✅ ✅ FIXED CORS (VERY IMPORTANT)
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://batchtrace-pro.vercel.app",   // ✅ YOUR MAIN FRONTEND
+      "https://batchtrace-pro-v2.vercel.app" // optional
+    ],
+    credentials: true,
+  })
+);
 
+// 🔥 HANDLE PREFLIGHT REQUESTS (IMPORTANT)
+app.options("*", cors());
+
+
+// ✅ TEST ROUTE
 app.get("/", (req, res) => {
   res.send("SERVER OK ✅");
 });
 
-// ✅ Session
-app.use(session({
-  secret: process.env.SESSION_SECRET || "secret",
-  resave: false,
-  saveUninitialized: false
-}));
 
-// ✅ Passport
+// ✅ SESSION
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+
+// ✅ PASSPORT
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ Google Strategy (🔥 FIXED URL)
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `${process.env.BASE_URL}/api/auth/google/callback`
-  },
-  (accessToken, refreshToken, profile, done) => {
-    return done(null, profile);
-  }
-));
+
+// ✅ GOOGLE STRATEGY
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: `${process.env.BASE_URL}/api/auth/google/callback`,
+    },
+    (accessToken, refreshToken, profile, done) => {
+      return done(null, profile);
+    }
+  )
+);
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// ✅ Routes
+
+// ✅ ROUTES
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
 
-// ✅ MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected ✅"))
-  .catch(err => console.log(err));
 
-// ✅ PORT FIX (🔥 VERY IMPORTANT)
+// ✅ MONGODB
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected ✅"))
+  .catch((err) => console.log(err));
+
+
+// ✅ SERVER START
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on ${PORT} 🚀`));
+
+app.listen(PORT, () =>
+  console.log(`Server running on ${PORT} 🚀`)
+);
