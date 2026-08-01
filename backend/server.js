@@ -13,19 +13,19 @@ const app = express();
 // ✅ MIDDLEWARE
 app.use(express.json());
 
-// ✅ ✅ FIXED CORS (VERY IMPORTANT)
+
+// ✅ ✅ CORS FIX
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://batchtrace-pro.vercel.app",   // ✅ YOUR MAIN FRONTEND
-      "https://batchtrace-pro-v2.vercel.app" // optional
+      "https://batchtrace-pro.vercel.app",
+      "https://batchtrace-pro-v2.vercel.app"
     ],
     credentials: true,
   })
 );
 
-// 🔥 HANDLE PREFLIGHT REQUESTS (IMPORTANT)
 app.options("*", cors());
 
 
@@ -49,8 +49,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-// ✅ GOOGLE STRATEGY
 passport.use(
   new GoogleStrategy(
     {
@@ -70,7 +68,10 @@ passport.deserializeUser((user, done) => done(null, user));
 
 // ✅ ROUTES
 const authRoutes = require("./routes/auth");
+const batchRoutes = require("./routes/batches"); // 🔥 IMPORTANT
+
 app.use("/api/auth", authRoutes);
+app.use("/api/batches", batchRoutes); // 🔥 IMPORTANT
 
 
 // ✅ MONGODB
@@ -80,9 +81,9 @@ mongoose
   .catch((err) => console.log(err));
 
 
-// ✅ SERVER START
+// ✅ START SERVER
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () =>
-  console.log(`Server running on ${PORT} 🚀`)
-);
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT} 🚀`);
+});
