@@ -10,11 +10,11 @@ const cors = require("cors");
 const app = express();
 
 
-// ✅ MIDDLEWARE
+// ✅ BODY PARSER
 app.use(express.json());
 
 
-// ✅ ✅ CORS FIX
+// ✅ CORS (IMPORTANT FIX)
 app.use(
   cors({
     origin: [
@@ -26,21 +26,22 @@ app.use(
   })
 );
 
-app.options("*", cors());
 
-
-// ✅ TEST ROUTE
+// ✅ ROOT TEST
 app.get("/", (req, res) => {
   res.send("SERVER OK ✅");
 });
 
 
-// ✅ SESSION
+// ✅ SESSION (FIX: add cookie settings)
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "secret",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: false, // change to true in production (https)
+    },
   })
 );
 
@@ -66,19 +67,25 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
 
-// ✅ ROUTES
+// ✅ ROUTES (MAKE SURE FILE EXISTS)
 const authRoutes = require("./routes/auth");
-const batchRoutes = require("./routes/batches"); // 🔥 IMPORTANT
+const batchRoutes = require("./routes/batches");
 
 app.use("/api/auth", authRoutes);
-app.use("/api/batches", batchRoutes); // 🔥 IMPORTANT
+app.use("/api/batches", batchRoutes);
+
+
+// ✅ ERROR HANDLER (IMPORTANT)
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found ❌" });
+});
 
 
 // ✅ MONGODB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
-  .catch((err) => console.log(err));
+  .catch((err) => console.log("Mongo Error:", err));
 
 
 // ✅ START SERVER

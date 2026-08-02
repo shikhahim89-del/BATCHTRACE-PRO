@@ -13,12 +13,17 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# ✅ FIXED CORS (IMPORTANT)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
-
+# ✅ CORS
+CORS(app, supports_credentials=True)
 bcrypt = Bcrypt(app)
-
 JWT_SECRET = os.getenv("JWT_SECRET", "secret123")
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+    return response
 
 # ---------------- DATABASE ----------------
 client = MongoClient(os.getenv("MONGO_URI"))
@@ -47,72 +52,164 @@ def token_required(func):
         return func(*args, **kwargs)
     return wrapper
 
+
 # ---------------- REGISTER ----------------
 @app.route("/api/auth/register", methods=["POST"])
 def register():
-    try:
-        data = request.get_json(force=True)  # ✅ FIX
+    data = request.get_json(force=True)
 
-        if not data:
-            return jsonify({"error": "No data received"}), 400
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
+    name = data.get("name", "").strip()
 
-        email = data.get("email", "").strip().lower()
-        password = data.get("password", "").strip()
-        name = data.get("name", "").strip()
+    if not email or not password or not name:
+        return jsonify({"error": "All fields required"}), 400
 
-        if not email or not password or not name:
-            return jsonify({"error": "All fields required"}), 400
+    if users_collection.find_one({"email": email}):
+        return jsonify({"error": "User exists"}), 400
 
-        if users_collection.find_one({"email": email}):
-            return jsonify({"error": "User exists"}), 400
+    hashed = bcrypt.generate_password_hash(password).decode("utf-8")
 
-        hashed = bcrypt.generate_password_hash(password).decode("utf-8")
+    users_collection.insert_one({
+        "name": name,
+        "email": email,
+        "password": hashed
+    })
 
-        users_collection.insert_one({
-            "name": name,
-            "email": email,
-            "password": hashed
-        })
+    return jsonify({"message": "Signup successful"}), 201
 
-        return jsonify({"message": "Signup successful"}), 201
-
-    except Exception as e:
-        print("REGISTER ERROR:", e)
-        return jsonify({"error": "Server error"}), 500
 
 # ---------------- LOGIN ----------------
 @app.route("/api/auth/login", methods=["POST"])
 def login():
+    data = request.get_json(force=True)
+
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
+
+    user = users_collection.find_one({"email": email})
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if not bcrypt.check_password_hash(user["password"], password):
+        return jsonify({"error": "Wrong password"}), 401
+
+    token = jwt.encode({
+        "user_id": str(user["_id"]),
+        "email": user["email"],
+        "exp": datetime.utcnow() + timedelta(hours=1)
+    }, JWT_SECRET, algorithm="HS256")
+
+    return jsonify({"token": token})
+
+
+# ---------------- ADD BATCH ----------------
+@app.route("/api/batches", methods=["POST"])
+def add_batch():
     try:
-        data = request.get_json(force=True)  # ✅ FIX
+        data = request.get_json()
 
-        email = data.get("email", "").strip().lower()
-        password = data.get("password", "").strip()
+        batchName = data.get("batchName")
+        product = data.get("product")
+        expiry = data.get("expiry")
 
-        user = users_collection.find_one({"email": email})
+        if not batchName or not product or not expiry:
+            return jsonify({"error": "All fields required"}), 400
 
-        if not user:
-            return jsonify({"error": "User not found"}), 404
+        # ✅ AI LOGIC
+        today = datetime.utcnow().date()
+        expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
 
-        if not bcrypt.check_password_hash(user["password"], password):
-            return jsonify({"error": "Wrong password"}), 401
+        if expiry_date < today:
+            status = "Rejected"
+            ai_result = f"❌ EXPIRED | {batchName} ({product})"
+        else:
+            status = "Approved"
+            ai_result = f"✅ SAFE | {batchName} ({product}) | Expiry: {expiry}"
 
-        token = jwt.encode({
-            "user_id": str(user["_id"]),
-            "email": user["email"],
-            "exp": datetime.utcnow() + timedelta(hours=1)
-        }, JWT_SECRET, algorithm="HS256")
+        batches_collection.insert_one({
+            "batch": batchName,   # 🔥 FIXED NAME
+            "product": product,
+            "expiry": expiry,
+            "status": status,
+            "ai_result": ai_result,
+            "createdAt": datetime.utcnow()
+        })
 
-        return jsonify({"token": token})
+        return jsonify({
+            "message": "Batch added with AI ✅",
+            "status": status,
+            "ai_result": ai_result
+        })
 
     except Exception as e:
-        print("LOGIN ERROR:", e)
+        print("BATCH ERROR:", e)
         return jsonify({"error": "Server error"}), 500
+
+# ---------------- GET BATCHES ----------------
+@app.route("/api/batches", methods=["GET"])
+def get_batches():
+    batches = []
+
+    for b in batches_collection.find():
+        b["_id"] = str(b["_id"])
+
+        # ✅ format date safely
+        if "createdAt" in b:
+            b["createdAt"] = b["createdAt"].strftime("%Y-%m-%d")
+
+        batches.append(b)
+
+    return jsonify(batches)
+# ---------------- DELETE ----------------
+@app.route("/api/batches/<id>", methods=["DELETE"])
+@token_required
+def delete_batch(id):
+    batches_collection.delete_one({"_id": ObjectId(id)})
+    return jsonify({"message": "Deleted"})
+
+
+# ---------------- UPDATE ----------------
+@app.route("/api/batches/<id>", methods=["PUT"])
+@token_required
+def update_batch(id):
+    data = request.get_json(force=True)
+
+    batchName = data.get("batchName")
+    product = data.get("product")
+    expiry = data.get("expiry")
+
+    # ✅ AI RE-CALCULATE
+    today = datetime.utcnow().date()
+    expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
+
+    if expiry_date < today:
+        status = "Rejected"
+        ai_result = f"❌ EXPIRED | {batchName} ({product})"
+    else:
+        status = "Approved"
+        ai_result = f"✅ SAFE | {batchName} ({product}) | Expiry: {expiry}"
+
+    batches_collection.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": {
+            "batch": batchName,
+            "product": product,
+            "expiry": expiry,
+            "status": status,
+            "ai_result": ai_result
+        }}
+    )
+
+    return jsonify({"message": "Updated with AI ✅"})
+
 
 # ---------------- HOME ----------------
 @app.route("/")
 def home():
     return "Backend is running 🚀"
+
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
