@@ -103,19 +103,17 @@ def login():
 
     return jsonify({"token": token})
 
-
-# ---------------- ADD BATCH ----------------
  # ---------------- ADD BATCH ----------------
 @app.route("/api/batches", methods=["POST"])
 def add_batch():
     try:
         data = request.get_json()
 
-        batchName = data.get("batch")   # ✅ FIXED
+        batch = data.get("batch")   # ✅ FIXED
         product = data.get("product")
         expiry = data.get("expiry")
 
-        if not batchName or not product or not expiry:
+        if not batch or not product or not expiry:
             return jsonify({"error": "All fields required"}), 400
 
         today = datetime.utcnow().date()
@@ -123,13 +121,13 @@ def add_batch():
 
         if expiry_date < today:
             status = "Rejected"
-            ai_result = f"❌ EXPIRED | {batchName} ({product})"
+            ai_result = f"❌ EXPIRED | {batch} ({product})"
         else:
             status = "Approved"
-            ai_result = f"✅ SAFE | {batchName} ({product}) | Expiry: {expiry}"
+            ai_result = f"✅ SAFE | {batch} ({product}) | Expiry: {expiry}"
 
         batches_collection.insert_one({
-            "batch": batchName,
+            "batch": batch,
             "product": product,
             "expiry": expiry,
             "status": status,
@@ -163,11 +161,13 @@ def get_batches():
     return jsonify(batches)
 # ---------------- DELETE ----------------
 @app.route("/api/batches/<id>", methods=["DELETE"])
-@token_required
 def delete_batch(id):
-    batches_collection.delete_one({"_id": ObjectId(id)})
-    return jsonify({"message": "Deleted"})
+    result = collection.delete_one({"_id": ObjectId(id)})
 
+    if result.deleted_count == 0:
+        return jsonify({"error": "Not found"}), 404
+
+    return jsonify({"message": "Deleted"}), 200
 
 # ---------------- UPDATE ----------------
 @app.route("/api/batches/<id>", methods=["PUT"])
@@ -175,7 +175,7 @@ def delete_batch(id):
 def update_batch(id):
     data = request.get_json(force=True)
 
-    batchName = data.get("batchName")
+    batch = data.get("batch")
     product = data.get("product")
     expiry = data.get("expiry")
 
@@ -185,15 +185,15 @@ def update_batch(id):
 
     if expiry_date < today:
         status = "Rejected"
-        ai_result = f"❌ EXPIRED | {batchName} ({product})"
+        ai_result = f"❌ EXPIRED | {batch} ({product})"
     else:
         status = "Approved"
-        ai_result = f"✅ SAFE | {batchName} ({product}) | Expiry: {expiry}"
+        ai_result = f"✅ SAFE | {batch} ({product}) | Expiry: {expiry}"
 
     batches_collection.update_one(
         {"_id": ObjectId(id)},
         {"$set": {
-            "batch": batchName,
+            "batch": batch,
             "product": product,
             "expiry": expiry,
             "status": status,

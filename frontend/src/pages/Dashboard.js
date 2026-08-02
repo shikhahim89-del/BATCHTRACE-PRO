@@ -49,47 +49,46 @@ function Dashboard() {
   // ✅ ✅ ADD FIX (IMPORTANT CHANGE HERE)
   
  const addBatch = async () => {
-  console.log("VALUES:", batch, product, expiry);
-
   if (!batch || !product || !expiry) {
     setError("All fields required ⚠️");
     return;
   }
 
   try {
-    const res = await fetch(`${API}/api/batches`, {
+    console.log("VALUES:", batch, product, expiry); // ✅ debug
+
+    const res = await fetch("https://batchtrace-pro.onrender.com/api/batches", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
       },
-     body: JSON.stringify({
-  batchName: batch,   // ✅ MUST
-  product: product,
-  expiry: expiry,
-})
+
+      body: JSON.stringify({
+        batch: batch,   // 🔥 THIS IS THE MAIN FIX
+        product: product,
+        expiry: expiry,
+      }),
     });
 
     const data = await res.json();
     console.log("SERVER RESPONSE:", data);
 
     if (!res.ok) {
-      throw new Error(data.error || "Add failed ❌");
+      throw new Error(data.error || "Add failed");
     }
 
     setBatch("");
     setProduct("");
     setExpiry("");
+    setError("");
 
     fetchBatches();
-    setError("");
 
   } catch (err) {
     console.error(err);
     setError(err.message || "Add failed ❌");
   }
-};     
-    
+};
     
   // ✅ ANALYZE
   const analyzeBatch = (id) => {
@@ -118,25 +117,34 @@ function Dashboard() {
   };
 
   // ✅ DELETE
-  const deleteBatch = async (id) => {
-    if (!window.confirm("Delete?")) return;
+ const deleteBatch = async (id) => {
+  const token = localStorage.getItem("token"); // 🔥 get token
 
-    try {
-      const res = await fetch(`${API}/api/batches/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
+  console.log("DELETE ID:", id);
+  console.log("TOKEN:", token);
 
-      if (!res.ok) throw new Error();
+  try {
+    const res = await fetch(`https://batchtrace-pro.onrender.com/api/batches/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`,   // 🔥 THIS LINE FIXES IT
+      },
+    });
 
-      setBatches((prev) => prev.filter((b) => b._id !== id));
-    } catch {
-      setError("Delete failed ❌");
+    const data = await res.json();
+    console.log(data);
+
+    if (!res.ok) {
+      throw new Error(data.error || "Delete failed");
     }
-  };
 
+    fetchBatches();
+
+  } catch (err) {
+    console.error(err);
+    setError("Delete failed ❌");
+  }
+};
   return (
     <div className="dashboard-container">
       <h1>Dashboard 🚀</h1>
