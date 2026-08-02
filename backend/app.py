@@ -105,19 +105,19 @@ def login():
 
 
 # ---------------- ADD BATCH ----------------
+ # ---------------- ADD BATCH ----------------
 @app.route("/api/batches", methods=["POST"])
 def add_batch():
     try:
         data = request.get_json()
 
-        batchName = data.get("batchName")
+        batchName = data.get("batch")   # ✅ FIXED
         product = data.get("product")
         expiry = data.get("expiry")
 
         if not batchName or not product or not expiry:
             return jsonify({"error": "All fields required"}), 400
 
-        # ✅ AI LOGIC
         today = datetime.utcnow().date()
         expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
 
@@ -129,7 +129,7 @@ def add_batch():
             ai_result = f"✅ SAFE | {batchName} ({product}) | Expiry: {expiry}"
 
         batches_collection.insert_one({
-            "batch": batchName,   # 🔥 FIXED NAME
+            "batch": batchName,
             "product": product,
             "expiry": expiry,
             "status": status,
@@ -145,8 +145,7 @@ def add_batch():
 
     except Exception as e:
         print("BATCH ERROR:", e)
-        return jsonify({"error": "Server error"}), 500
-
+        return jsonify({"error": "Server error"}), 500       
 # ---------------- GET BATCHES ----------------
 @app.route("/api/batches", methods=["GET"])
 def get_batches():

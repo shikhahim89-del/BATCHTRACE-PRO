@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Dashboard.css";
 
-// ✅ FIXED API HANDLING (fallback added)
 const API = "https://batchtrace-pro.onrender.com";
-
-console.log("🚀 API URL:", API);
 
 function Dashboard() {
   const [batches, setBatches] = useState([]);
-  const [batchName, setBatchName] = useState("");
+  const [batch, setBatch] = useState("");
   const [product, setProduct] = useState("");
   const [expiry, setExpiry] = useState("");
   const [loadingId, setLoadingId] = useState(null);
@@ -20,28 +17,26 @@ function Dashboard() {
   // ✅ FETCH
   const fetchBatches = useCallback(async () => {
     try {
-      setLoading(true);
-
       const res = await fetch(`${API}/api/batches`, {
         headers: {
           Authorization: "Bearer " + token,
         },
       });
 
-      if (!res.ok) throw new Error("Fetch failed");
-
       const data = await res.json();
-      setBatches(Array.isArray(data) ? data : []);
+
+      if (!res.ok) throw new Error(data.error);
+
+      setBatches(data);
       setError("");
     } catch (err) {
       console.error(err);
-      setError("Failed to load batches ❌");
+      setError("Failed to load ❌");
     } finally {
       setLoading(false);
     }
   }, [token]);
 
-  // ✅ LOAD
   useEffect(() => {
     if (!token) {
       alert("Login first ❌");
@@ -51,93 +46,80 @@ function Dashboard() {
     }
   }, [token, fetchBatches]);
 
-  // ✅ ADD
-  const addBatch = async () => {
-  if (!batchName.trim() || !product.trim() || !expiry) {
+  // ✅ ✅ ADD FIX (IMPORTANT CHANGE HERE)
+  
+ const addBatch = async () => {
+  console.log("VALUES:", batch, product, expiry);
+
+  if (!batch || !product || !expiry) {
     setError("All fields required ⚠️");
     return;
   }
 
   try {
-    console.log("TOKEN:", token);
-
     const res = await fetch(`${API}/api/batches`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token,
       },
-      body: JSON.stringify({
-        batchName: batchName,   // ✅ FIXED KEY
-        product: product,
-        expiry: expiry,
-      }),
+     body: JSON.stringify({
+  batchName: batch,   // ✅ MUST
+  product: product,
+  expiry: expiry,
+})
     });
 
     const data = await res.json();
     console.log("SERVER RESPONSE:", data);
 
     if (!res.ok) {
-      throw new Error(data.error || "Add failed");
+      throw new Error(data.error || "Add failed ❌");
     }
 
-    // ✅ CLEAR INPUTS
-    setBatchName("");
+    setBatch("");
     setProduct("");
     setExpiry("");
 
-    // ✅ REFRESH LIST
     fetchBatches();
-
     setError("");
+
   } catch (err) {
     console.error(err);
     setError(err.message || "Add failed ❌");
   }
-};
+};     
+    
+    
   // ✅ ANALYZE
-  const analyzeBatch = async (id) => {
+  const analyzeBatch = (id) => {
     setLoadingId(id);
 
-    try {
-      const res = await fetch(`${API}/api/batches/analyze/${id}`, {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Analyze failed");
-      }
-
+    setTimeout(() => {
       setBatches((prev) =>
-        prev.map((b) =>
-          b._id === id
-            ? {
-                ...b,
-                ai_result: data.result,
-                status:
-                  new Date(b.expiry) > new Date()
-                    ? "Approved ✅"
-                    : "Rejected ❌",
-              }
-            : b
-        )
+        prev.map((b) => {
+          if (b._id !== id) return b;
+
+          const today = new Date();
+          const exp = new Date(b.expiryDate || b.expiry);
+
+          const approved = exp >= today;
+
+          return {
+            ...b,
+            status: approved ? "Approved" : "Expired",
+            ai_result: approved ? "SAFE" : "EXPIRED",
+          };
+        })
       );
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Analyze failed ❌");
-    } finally {
+
       setLoadingId(null);
-    }
+    }, 500);
   };
 
   // ✅ DELETE
   const deleteBatch = async (id) => {
-    if (!window.confirm("Delete this batch?")) return;
+    if (!window.confirm("Delete?")) return;
 
     try {
       const res = await fetch(`${API}/api/batches/${id}`, {
@@ -147,145 +129,92 @@ function Dashboard() {
         },
       });
 
-      if (!res.ok) throw new Error("Delete failed");
+      if (!res.ok) throw new Error();
 
       setBatches((prev) => prev.filter((b) => b._id !== id));
-      setError("");
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Delete failed ❌");
-    }
-  };
-
-  // ✅ UPDATE
-  const updateBatch = async (id) => {
-    const newName = prompt("Enter new batch name");
-
-    if (!newName) return;
-
-    try {
-      const res = await fetch(`${API}/api/batches/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify({ batch: newName }),
-      });
-
-      if (!res.ok) throw new Error("Update failed");
-
-      setBatches((prev) =>
-        prev.map((b) =>
-          b._id === id ? { ...b, batch: newName } : b
-        )
-      );
-    } catch (err) {
-      console.error(err);
-      setError("Update failed ❌");
     }
   };
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-box">
-        <h1 className="title">Dashboard 🚀</h1>
+      <h1>Dashboard 🚀</h1>
 
-        <div className="dashboard-input-group">
-          <input
-            className="dashboard-input"
-            value={batchName}
-            onChange={(e) => setBatchName(e.target.value)}
-            placeholder="Batch Name"
-          />
+      {/* FORM */}
+      <div className="form">
+        <input
+  type="text"
+  placeholder="Batch"
+  value={batch}
+  onChange={(e) => setBatch(e.target.value)}
+/>
 
-          <input
-            className="dashboard-input"
-            value={product}
-            onChange={(e) => setProduct(e.target.value)}
-            placeholder="Product"
-          />
+<input
+  type="text"
+  placeholder="Product"
+  value={product}
+  onChange={(e) => setProduct(e.target.value)}
+/>
 
-          <input
-            className="dashboard-input"
-            type="date"
-            value={expiry}
-            onChange={(e) => setExpiry(e.target.value)}
-          />
-
-          <button className="dashboard-button" onClick={addBatch}>
-            Add
-          </button>
-        </div>
-
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
-        {loading ? (
-          <p className="no-data">Loading batches...</p>
-        ) : batches.length === 0 ? (
-          <p className="no-data">
-            No batches yet 🚫 — Add your first batch
-          </p>
-        ) : (
-          <table className="batch-table">
-            <thead>
-              <tr>
-                <th>Batch</th>
-                <th>Certification</th>
-                <th>Status</th>
-                <th>AI Result</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {batches.map((b) => (
-                <tr key={b._id}>
-                  <td>{b.batch}</td>
-
-                  <td>
-                    {new Date(b.expiry) > new Date()
-                      ? "Certified ✅"
-                      : "Expired ❌"}
-                  </td>
-
-                  <td>{b.status}</td>
-
-                  <td>
-                    {loadingId === b._id
-                      ? "🔍 Analyzing..."
-                      : b.ai_result || "Not analyzed"}
-                  </td>
-
-                  <td>
-                    <button
-                      className="dashboard-button"
-                      onClick={() => analyzeBatch(b._id)}
-                      disabled={loadingId === b._id}
-                    >
-                      Analyze
-                    </button>
-
-                    <button
-                      className="dashboard-button"
-                      onClick={() => updateBatch(b._id)}
-                    >
-                      Update
-                    </button>
-
-                    <button
-                      className="dashboard-button"
-                      onClick={() => deleteBatch(b._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+<input
+  type="date"
+  value={expiry}
+  onChange={(e) => setExpiry(e.target.value)}
+/>
+        <button onClick={addBatch}>Add</button>
       </div>
+
+      {error && <p className="error">{error}</p>}
+
+      {/* TABLE */}
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Batch</th>
+              <th>Product</th>
+              <th>Certification</th>
+              <th>AI Result</th>
+              <th>Expiry</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {batches.map((b) => (
+              <tr key={b._id}>
+                <td>{b.batchId || b.batch}</td>
+                <td>{b.productName || b.product}</td>
+
+                <td>{b.status || "Pending"}</td>
+
+                <td>
+                  {loadingId === b._id
+                    ? "Analyzing..."
+                    : b.ai_result || "Not analyzed"}
+                </td>
+
+                <td>
+                  {new Date(b.expiryDate || b.expiry).toLocaleDateString("en-GB")}
+                </td>
+
+                <td>
+                  <button onClick={() => analyzeBatch(b._id)}>
+                    Analyze
+                  </button>
+
+                  <button onClick={() => deleteBatch(b._id)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
