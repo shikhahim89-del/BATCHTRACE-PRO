@@ -103,13 +103,14 @@ def login():
 
     return jsonify({"token": token})
 
- # ---------------- ADD BATCH ----------------
+
+# ---------------- ADD BATCH ----------------
 @app.route("/api/batches", methods=["POST"])
 def add_batch():
     try:
         data = request.get_json()
 
-        batch = data.get("batch")   # ✅ FIXED
+        batch = data.get("batch")
         product = data.get("product")
         expiry = data.get("expiry")
 
@@ -143,7 +144,9 @@ def add_batch():
 
     except Exception as e:
         print("BATCH ERROR:", e)
-        return jsonify({"error": "Server error"}), 500       
+        return jsonify({"error": "Server error"}), 500
+
+
 # ---------------- GET BATCHES ----------------
 @app.route("/api/batches", methods=["GET"])
 def get_batches():
@@ -152,22 +155,43 @@ def get_batches():
     for b in batches_collection.find():
         b["_id"] = str(b["_id"])
 
-        # ✅ format date safely
         if "createdAt" in b:
             b["createdAt"] = b["createdAt"].strftime("%Y-%m-%d")
 
         batches.append(b)
 
     return jsonify(batches)
-# ---------------- DELETE ----------------
+
+
+# ---------------- DELETE (🔥 FIXED) ----------------
 @app.route("/api/batches/<id>", methods=["DELETE"])
 def delete_batch(id):
-    result = collection.delete_one({"_id": ObjectId(id)})
+    try:
+        print("DELETE ID RECEIVED:", id)
 
-    if result.deleted_count == 0:
-        return jsonify({"error": "Not found"}), 404
+        # ✅ Step 1: check id format
+        if not ObjectId.is_valid(id):
+            print("INVALID OBJECT ID")
+            return jsonify({"error": "Invalid ID"}), 400
 
-    return jsonify({"message": "Deleted"}), 200
+        # ✅ Step 2: convert safely
+        obj_id = ObjectId(id)
+
+        # ✅ Step 3: delete
+        result = batches_collection.delete_one({"_id": obj_id})
+
+        print("DELETE RESULT:", result.deleted_count)
+
+        # ✅ Step 4: check result
+        if result.deleted_count == 0:
+            return jsonify({"error": "Batch not found"}), 404
+
+        return jsonify({"message": "Deleted successfully"}), 200
+
+    except Exception as e:
+        print("🔥 DELETE CRASH ERROR:", str(e))
+        return jsonify({"error": str(e)}), 500
+
 
 # ---------------- UPDATE ----------------
 @app.route("/api/batches/<id>", methods=["PUT"])
@@ -179,7 +203,6 @@ def update_batch(id):
     product = data.get("product")
     expiry = data.get("expiry")
 
-    # ✅ AI RE-CALCULATE
     today = datetime.utcnow().date()
     expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
 

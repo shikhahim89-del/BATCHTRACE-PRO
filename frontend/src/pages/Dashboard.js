@@ -14,6 +14,7 @@ function Dashboard() {
 
   const token = localStorage.getItem("token");
 
+
   // ✅ FETCH
   const fetchBatches = useCallback(async () => {
     try {
@@ -24,7 +25,6 @@ function Dashboard() {
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error);
 
       setBatches(data);
@@ -46,50 +46,42 @@ function Dashboard() {
     }
   }, [token, fetchBatches]);
 
-  // ✅ ✅ ADD FIX (IMPORTANT CHANGE HERE)
-  
- const addBatch = async () => {
-  if (!batch || !product || !expiry) {
-    setError("All fields required ⚠️");
-    return;
-  }
-
-  try {
-    console.log("VALUES:", batch, product, expiry); // ✅ debug
-
-    const res = await fetch("https://batchtrace-pro.onrender.com/api/batches", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        batch: batch,   // 🔥 THIS IS THE MAIN FIX
-        product: product,
-        expiry: expiry,
-      }),
-    });
-
-    const data = await res.json();
-    console.log("SERVER RESPONSE:", data);
-
-    if (!res.ok) {
-      throw new Error(data.error || "Add failed");
+  // ✅ ADD
+  const addBatch = async () => {
+    if (!batch || !product || !expiry) {
+      setError("All fields required ⚠️");
+      return;
     }
 
-    setBatch("");
-    setProduct("");
-    setExpiry("");
-    setError("");
+    try {
+      const res = await fetch(`${API}/api/batches`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+        body: JSON.stringify({
+          batch,
+          product,
+          expiry,
+        }),
+      });
 
-    fetchBatches();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Add failed");
 
-  } catch (err) {
-    console.error(err);
-    setError(err.message || "Add failed ❌");
-  }
-};
-    
+      setBatch("");
+      setProduct("");
+      setExpiry("");
+      setError("");
+
+      fetchBatches();
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Add failed ❌");
+    }
+  };
+
   // ✅ ANALYZE
   const analyzeBatch = (id) => {
     setLoadingId(id);
@@ -116,61 +108,73 @@ function Dashboard() {
     }, 500);
   };
 
-  // ✅ DELETE
- const deleteBatch = async (id) => {
-  const token = localStorage.getItem("token"); // 🔥 get token
+  // ✅ DELETE (FINAL FIXED)
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`${API}/api/batches/${id}`, {
+        method: "DELETE",
+      });
 
-  console.log("DELETE ID:", id);
-  console.log("TOKEN:", token);
+      const text = await res.text();
 
-  try {
-    const res = await fetch(`https://batchtrace-pro.onrender.com/api/batches/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Authorization": `Bearer ${token}`,   // 🔥 THIS LINE FIXES IT
-      },
-    });
+      if (!res.ok) {
+        console.error("Delete failed:", text);
+        alert("Delete failed ❌");
+        return;
+      }
 
-    const data = await res.json();
-    console.log(data);
+      alert("Deleted successfully ✅");
 
-    if (!res.ok) {
-      throw new Error(data.error || "Delete failed");
+      // ✅ UI update
+      setBatches((prev) => prev.filter((b) => b._id !== id));
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Server error ❌");
     }
+  };
 
-    fetchBatches();
+  // ✅ EXPIRY COLOR
+  const getExpiryStatus = (date) => {
+    const today = new Date();
+    const exp = new Date(date);
 
-  } catch (err) {
-    console.error(err);
-    setError("Delete failed ❌");
-  }
-};
+    const diff = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+    if (diff < 0) return { text: "Expired", class: "red" };
+    if (diff <= 3) return { text: `${diff} days left`, class: "red" };
+    if (diff <= 7) return { text: `${diff} days left`, class: "yellow" };
+    return { text: `${diff} days left`, class: "green" };
+  };
+
   return (
     <div className="dashboard-container">
-      <h1>Dashboard 🚀</h1>
+      <h1>🚀 Batch Dashboard</h1>
 
       {/* FORM */}
-      <div className="form">
+      <div className="card form-card">
+        <h2>➕ Add Batch</h2>
+
         <input
-  type="text"
-  placeholder="Batch"
-  value={batch}
-  onChange={(e) => setBatch(e.target.value)}
-/>
+          type="text"
+          placeholder="Batch ID"
+          value={batch}
+          onChange={(e) => setBatch(e.target.value)}
+        />
 
-<input
-  type="text"
-  placeholder="Product"
-  value={product}
-  onChange={(e) => setProduct(e.target.value)}
-/>
+        <input
+          type="text"
+          placeholder="Product"
+          value={product}
+          onChange={(e) => setProduct(e.target.value)}
+        />
 
-<input
-  type="date"
-  value={expiry}
-  onChange={(e) => setExpiry(e.target.value)}
-/>
-        <button onClick={addBatch}>Add</button>
+        <input
+          type="date"
+          value={expiry}
+          onChange={(e) => setExpiry(e.target.value)}
+        />
+
+        <button onClick={addBatch}>Add Batch</button>
       </div>
 
       {error && <p className="error">{error}</p>}
@@ -179,49 +183,89 @@ function Dashboard() {
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Batch</th>
-              <th>Product</th>
-              <th>Certification</th>
-              <th>AI Result</th>
-              <th>Expiry</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {batches.map((b) => (
-              <tr key={b._id}>
-                <td>{b.batchId || b.batch}</td>
-                <td>{b.productName || b.product}</td>
-
-                <td>{b.status || "Pending"}</td>
-
-                <td>
-                  {loadingId === b._id
-                    ? "Analyzing..."
-                    : b.ai_result || "Not analyzed"}
-                </td>
-
-                <td>
-                  {new Date(b.expiryDate || b.expiry).toLocaleDateString("en-GB")}
-                </td>
-
-                <td>
-                  <button onClick={() => analyzeBatch(b._id)}>
-                    Analyze
-                  </button>
-
-                  <button onClick={() => deleteBatch(b._id)}>
-                    Delete
-                  </button>
-                </td>
+        <div className="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Batch</th>
+                <th>Product</th>
+                <th>Certification</th>
+                <th>AI Result</th>
+                <th>Expiry</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {batches.map((b) => (
+                <tr key={b._id}>
+                  <td>{b.batchId || b.batch}</td>
+                  <td>{b.productName || b.product}</td>
+
+                  {/* STATUS */}
+                  <td>
+                    {!b.ai_result ? (
+                      <span className="badge gray">Pending ⏳</span>
+                    ) : b.status === "Approved" ? (
+                      <span className="badge green">Certified ✅</span>
+                    ) : (
+                      <span className="badge red">Expired ❌</span>
+                    )}
+                  </td>
+
+                  {/* AI */}
+                  <td>
+                    {loadingId === b._id
+                      ? "Analyzing..."
+                      : b.ai_result || "Click Analyze"}
+                  </td>
+
+                  {/* EXPIRY */}
+                  <td>
+                    {(() => {
+                      const exp = b.expiryDate || b.expiry;
+                      const status = getExpiryStatus(exp);
+
+                      return (
+                        <>
+                          {new Date(exp).toLocaleDateString("en-GB")}
+                          <br />
+                          <span className={`badge ${status.class}`}>
+                            {status.text}
+                          </span>
+                        </>
+                      );
+                    })()}
+                  </td>
+
+                  {/* ACTIONS */}
+                  <td>
+                    <button onClick={() => analyzeBatch(b._id)}>
+                      Analyze
+                    </button>
+
+                    {/* ✅ FIXED HERE */}
+                    <button onClick={() => handleDelete(b._id)}>
+                      🗑 Delete
+                    </button>
+                                                                                                                                                                                                                                                                                                                                                    
+                    <button
+                      onClick={() =>
+                        alert(
+                          `Certificate Verified ✅\n\nProduct: ${
+                            b.productName || b.product
+                          }\nBatch: ${b.batchId || b.batch}`
+                        )
+                      }
+                    >
+                      Certificate
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

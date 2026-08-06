@@ -6,54 +6,47 @@ body {
 /* 🌙 Background */
 .dashboard-container {
   min-height: 100vh;
-  background: #0f172a;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* 📦 Card */
-.dashboard-box {
-  background: #1e293b;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   padding: 30px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 800px;
 }
 
 /* 📝 Title */
-.title {
+.dashboard-container h1 {
   color: white;
   text-align: center;
+  margin-bottom: 20px;
 }
 
-/* 🔤 Input group */
-.dashboard-input-group {
-  display: flex;
-  gap: 10px;
-  margin: 20px 0;
-  flex-wrap: wrap; /* ✅ responsive fix */
+/* 📦 Card */
+.card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+  margin: 20px auto;
+  width: 90%;
+  max-width: 900px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
-/* 🔤 Inputs */
-.dashboard-input {
-  flex: 1;
+/* ➕ Form */
+.form-card h2 {
+  color: #38bdf8;
+  margin-bottom: 10px;
+}
+
+.form-card input {
+  width: 100%;
   padding: 10px;
+  margin: 8px 0;
   border-radius: 6px;
   border: none;
   outline: none;
-
-  background: #ffffff;
-  color: #000000;
-}
-
-/* placeholder */
-.dashboard-input::placeholder {
-  color: #555;
+  background: #fff;
+  color: #000;
 }
 
 /* 🔘 Buttons */
-.dashboard-button {
+button {
   background: #38bdf8;
   border: none;
   padding: 10px 15px;
@@ -61,49 +54,73 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
+  margin: 5px;
 }
 
-.dashboard-button:hover {
+button:hover {
   background: #0ea5e9;
 }
 
 /* 📊 Table */
-.batch-table {
+table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
   background: white;
   border-radius: 8px;
   overflow: hidden;
 }
 
-/* header */
-.batch-table th {
+th {
   background: #1e88e5;
   color: white;
   padding: 12px;
 }
 
-/* cells */
-.batch-table td {
+td {
   color: black;
   padding: 10px;
   border-bottom: 1px solid #ddd;
+  text-align: center;
 }
 
-/* empty text */
-.no-data {
+/* 🏷️ Status Badge */
+.badge {
+  padding: 5px 10px;
+  border-radius: 6px;
   color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.green {
+  background: #22c55e;
+}
+
+.red {
+  background: #ef4444;
+}
+
+.gray {
+  background: #6b7280;
+}
+
+/* ❌ Error */
+.error {
+  color: #f87171;
   text-align: center;
+  margin-top: 10px;
 }
 
 /* 📱 Responsive */
 @media (max-width: 768px) {
-  .dashboard-input-group {
-    flex-direction: column; /* ✅ better mobile */
+  .card {
+    width: 95%;
   }
 
-  .batch-table {
+  table {
     font-size: 12px;
   }
+}
+.yellow {
+  background: orange;
 }
