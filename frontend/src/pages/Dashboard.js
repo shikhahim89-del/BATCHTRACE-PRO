@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Dashboard.css";
 
-const API = "https://batchtrace-pro.onrender.com";
+const API = "https://batchtrace-pro.onrender.com"; // ✅ FIXED
 
 function Dashboard() {
   const [batches, setBatches] = useState([]);
@@ -14,6 +14,11 @@ function Dashboard() {
 
   const token = localStorage.getItem("token");
 
+  // ✅ LOGOUT
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/login"; // ✅ FIXED
+  };
 
   // ✅ FETCH
   const fetchBatches = useCallback(async () => {
@@ -40,7 +45,7 @@ function Dashboard() {
   useEffect(() => {
     if (!token) {
       alert("Login first ❌");
-      window.location.href = "/login";
+      window.location.href = "/login"; // ✅ FIXED
     } else {
       fetchBatches();
     }
@@ -60,11 +65,7 @@ function Dashboard() {
           "Content-Type": "application/json",
           Authorization: "Bearer " + token,
         },
-        body: JSON.stringify({
-          batch,
-          product,
-          expiry,
-        }),
+        body: JSON.stringify({ batch, product, expiry }),
       });
 
       const data = await res.json();
@@ -83,57 +84,60 @@ function Dashboard() {
   };
 
   // ✅ ANALYZE
-  const analyzeBatch = (id) => {
+  const analyzeBatch = async (id) => {
     setLoadingId(id);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch(`${API}/api/batches/analyze/${id}`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
       setBatches((prev) =>
-        prev.map((b) => {
-          if (b._id !== id) return b;
-
-          const today = new Date();
-          const exp = new Date(b.expiryDate || b.expiry);
-
-          const approved = exp >= today;
-
-          return {
-            ...b,
-            status: approved ? "Approved" : "Expired",
-            ai_result: approved ? "SAFE" : "EXPIRED",
-          };
-        })
+        prev.map((b) =>
+          b._id === id
+            ? {
+                ...b,
+                ai_result: data.result,
+                status:
+                  data.result === "SAFE" ? "Approved" : "Expired",
+              }
+            : b
+        )
       );
-
+    } catch (err) {
+      console.error(err);
+      alert("Analyze failed ❌");
+    } finally {
       setLoadingId(null);
-    }, 500);
+    }
   };
 
-  // ✅ DELETE (FINAL FIXED)
+  // ✅ DELETE
   const handleDelete = async (id) => {
     try {
       const res = await fetch(`${API}/api/batches/${id}`, {
         method: "DELETE",
       });
 
-      const text = await res.text();
-
       if (!res.ok) {
-        console.error("Delete failed:", text);
         alert("Delete failed ❌");
         return;
       }
 
-      alert("Deleted successfully ✅");
-
-      // ✅ UI update
       setBatches((prev) => prev.filter((b) => b._id !== id));
     } catch (err) {
-      console.error("Error:", err);
+      console.error(err);
       alert("Server error ❌");
     }
   };
 
-  // ✅ EXPIRY COLOR
+  // ✅ EXPIRY STATUS
   const getExpiryStatus = (date) => {
     const today = new Date();
     const exp = new Date(date);
@@ -147,8 +151,12 @@ function Dashboard() {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="container">
       <h1>🚀 Batch Dashboard</h1>
+
+      <button onClick={handleLogout} style={{ float: "right" }}>
+        Logout 🚪
+      </button>
 
       {/* FORM */}
       <div className="card form-card">
@@ -202,25 +210,24 @@ function Dashboard() {
                   <td>{b.batchId || b.batch}</td>
                   <td>{b.productName || b.product}</td>
 
-                  {/* STATUS */}
                   <td>
                     {!b.ai_result ? (
                       <span className="badge gray">Pending ⏳</span>
                     ) : b.status === "Approved" ? (
-                      <span className="badge green">Certified ✅</span>
+                      <span className="badge green">
+                        Certified ✅
+                      </span>
                     ) : (
                       <span className="badge red">Expired ❌</span>
                     )}
                   </td>
 
-                  {/* AI */}
                   <td>
                     {loadingId === b._id
                       ? "Analyzing..."
-                      : b.ai_result || "Click Analyze"}
+                      : b.ai_result || "Not analyzed"}
                   </td>
 
-                  {/* EXPIRY */}
                   <td>
                     {(() => {
                       const exp = b.expiryDate || b.expiry;
@@ -228,9 +235,13 @@ function Dashboard() {
 
                       return (
                         <>
-                          {new Date(exp).toLocaleDateString("en-GB")}
+                          {new Date(exp).toLocaleDateString(
+                            "en-GB"
+                          )}
                           <br />
-                          <span className={`badge ${status.class}`}>
+                          <span
+                            className={`badge ${status.class}`}
+                          >
                             {status.text}
                           </span>
                         </>
@@ -238,23 +249,27 @@ function Dashboard() {
                     })()}
                   </td>
 
-                  {/* ACTIONS */}
                   <td>
-                    <button onClick={() => analyzeBatch(b._id)}>
+                    <button
+                      onClick={() => analyzeBatch(b._id)}
+                    >
                       Analyze
                     </button>
 
-                    {/* ✅ FIXED HERE */}
-                    <button onClick={() => handleDelete(b._id)}>
+                    <button
+                      onClick={() => handleDelete(b._id)}
+                    >
                       🗑 Delete
                     </button>
-                                                                                                                                                                                                                                                                                                                                                    
+
                     <button
                       onClick={() =>
                         alert(
                           `Certificate Verified ✅\n\nProduct: ${
                             b.productName || b.product
-                          }\nBatch: ${b.batchId || b.batch}`
+                          }\nBatch: ${
+                            b.batchId || b.batch
+                          }`
                         )
                       }
                     >

@@ -1,67 +1,92 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Login.css";
 
 const API = "https://batchtrace-pro.onrender.com";
 
-function Profile() {
-  const [user, setUser] = useState(null);
+function Login() {
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  });
 
-    fetch(`${API}/api/auth/profile`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log("PROFILE:", data);
-        setUser(data);
-      })
-      .catch(err => console.log(err));
-  }, []);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
 
-  if (!user) {
-    return <h2 style={{ textAlign: "center", marginTop: "50px" }}>Loading...</h2>;
-  }
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      localStorage.setItem("token", data.token);
+
+      alert("Login Successful ✅");
+      navigate("/dashboard");
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
+  };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px", color: "white" }}>
-      <h1 style={{ fontSize: "30px", color: "#4ade80" }}>Profile Page</h1>
+    <div className="auth-container">
+      <form onSubmit={handleLogin} className="auth-box">
+        <h2 className="auth-title">Login</h2>
 
-      <div style={{
-        marginTop: "20px",
-        padding: "20px",
-        background: "#1f2937",
-        display: "inline-block",
-        borderRadius: "10px"
-      }}>
-        
-        {/* Avatar */}
-        <img
-          src={`https://ui-avatars.com/api/?name=${user.name}`}
-          alt="avatar"
-          style={{
-            borderRadius: "50%",
-            marginBottom: "15px"
-          }}
+        <input
+          type="email"
+          name="email"
+          placeholder="Enter Email"
+          value={formData.email}
+          onChange={handleChange}
+          className="auth-input"
+          required
         />
 
-        <p style={{ fontSize: "20px" }}>
-          <strong>Name:</strong> {user.name}
-        </p>
+        <input
+          type="password"
+          name="password"
+          placeholder="Enter Password"
+          value={formData.password}
+          onChange={handleChange}
+          className="auth-input"
+          required
+        />
 
-        <p style={{ fontSize: "20px", marginTop: "10px" }}>
-          <strong>Email:</strong> {user.email}
-        </p>
+        <button type="submit" className="auth-button">
+          Login
+        </button>
 
-        <p style={{ fontSize: "14px", marginTop: "10px", color: "gray" }}>
-          User ID: {user.user_id}
+        <p className="switch-text">
+          Don't have an account?{" "}
+          <span onClick={() => navigate("/signup")}>
+            Sign Up
+          </span>
         </p>
-      </div>
+      </form>
     </div>
   );
 }
 
-export default Profile;
+export default Login;

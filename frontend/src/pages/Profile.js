@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 
+const API = "https://batchtrace-pro.onrender.com";
+
 function Profile() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://127.0.0.1:5000/api/auth/profile", {
+    fetch(`${API}/api/auth/profile`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -21,16 +23,48 @@ function Profile() {
   }, []);
 
   if (!user) {
-    return <h2 className="text-center mt-10">Loading...</h2>;
+    return (
+      <h2 style={{ textAlign: "center", marginTop: "50px" }}>
+        Loading...
+      </h2>
+    );
   }
 
   return (
-    <div className="text-center mt-10">
-      <h1 className="text-3xl font-bold text-green-400">Profile Page</h1>
+    <div style={{ textAlign: "center", marginTop: "50px", color: "white" }}>
+      <h1 style={{ fontSize: "28px", color: "#4ade80" }}>
+        Profile Page
+      </h1>
 
-      <p className="mt-4 text-xl">
-        Email: {user.email}
-      </p>
+      <div style={{
+        marginTop: "20px",
+        padding: "20px",
+        background: "#1f2937",
+        borderRadius: "10px",
+        display: "inline-block"
+      }}>
+        
+        <img
+          src={`https://ui-avatars.com/api/?name=${user.name || "User"}`}
+          alt="avatar"
+          style={{
+            borderRadius: "50%",
+            marginBottom: "15px"
+          }}
+        />
+
+        <p style={{ fontSize: "18px" }}>
+          <strong>Name:</strong> {user.name || "User"}
+        </p>
+
+        <p style={{ fontSize: "18px", marginTop: "10px" }}>
+          <strong>Email:</strong> {user.email}
+        </p>
+
+        <p style={{ fontSize: "14px", marginTop: "10px", color: "gray" }}>
+          User ID: {user.user_id}
+        </p>
+      </div>
     </div>
   );
 }
