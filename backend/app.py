@@ -226,6 +226,30 @@ def update_batch(id):
 
     return jsonify({"message": "Updated with AI ✅"})
 
+# --------------- PROFILE --------------
+
+# ---------------- PROFILE ----------------
+@app.route("/api/auth/profile", methods=["GET"])
+@token_required
+def get_profile():
+    try:
+        user_id = request.user["user_id"]
+
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        return jsonify({
+            "name": user.get("name", "User"),
+            "email": user.get("email"),
+            "user_id": str(user["_id"])
+        })
+
+    except Exception as e:
+        print("PROFILE ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
+
 
 # ---------------- HOME ----------------
 @app.route("/")

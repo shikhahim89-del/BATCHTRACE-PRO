@@ -1,109 +1,67 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./Login.css";
+import React, { useEffect, useState } from "react";
 
-// ✅ ONLY THIS (NO fallback)
 const API = "https://batchtrace-pro.onrender.com";
 
-console.log("🚀 API URL (Login):", API);
+function Profile() {
+  const [user, setUser] = useState(null);
 
-function Login() {
-  const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: ""
-  });
+    fetch(`${API}/api/auth/profile`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("PROFILE:", data);
+        setUser(data);
+      })
+      .catch(err => console.log(err));
+  }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await fetch(`${API}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.msg || "Login Failed ❌");
-      }
-
-      localStorage.setItem("token", data.token);
-      alert("Login Successful ✅");
-      navigate("/dashboard");
-
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Server error ❌");
-    }
-  };
-
-  const handleGoogleLogin = () => {
-    localStorage.removeItem("token");
-    window.location.href = `${API}/api/auth/google`;
-  };
+  if (!user) {
+    return <h2 style={{ textAlign: "center", marginTop: "50px" }}>Loading...</h2>;
+  }
 
   return (
-    <div className="auth-container">
-      <form onSubmit={handleLogin} className="auth-box">
-        <h2 className="auth-title">Login</h2>
+    <div style={{ textAlign: "center", marginTop: "50px", color: "white" }}>
+      <h1 style={{ fontSize: "30px", color: "#4ade80" }}>Profile Page</h1>
 
-        <input
-          className="auth-input"
-          type="email"
-          name="email"
-          placeholder="Enter Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
+      <div style={{
+        marginTop: "20px",
+        padding: "20px",
+        background: "#1f2937",
+        display: "inline-block",
+        borderRadius: "10px"
+      }}>
+        
+        {/* Avatar */}
+        <img
+          src={`https://ui-avatars.com/api/?name=${user.name}`}
+          alt="avatar"
+          style={{
+            borderRadius: "50%",
+            marginBottom: "15px"
+          }}
         />
 
-        <input
-          className="auth-input"
-          type="password"
-          name="password"
-          placeholder="Enter Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-
-        <button className="auth-button" type="submit">
-          Login
-        </button>
-
-        <p className="divider">OR</p>
-
-        <button
-          type="button"
-          className="auth-button google-btn"
-          onClick={handleGoogleLogin}
-        >
-          Sign in with Google
-        </button>
-
-        <p className="switch-text">
-          Don't have an account?{" "}
-          <span onClick={() => navigate("/signup")}>
-            Sign Up
-          </span>
+        <p style={{ fontSize: "20px" }}>
+          <strong>Name:</strong> {user.name}
         </p>
-      </form>
+
+        <p style={{ fontSize: "20px", marginTop: "10px" }}>
+          <strong>Email:</strong> {user.email}
+        </p>
+
+        <p style={{ fontSize: "14px", marginTop: "10px", color: "gray" }}>
+          User ID: {user.user_id}
+        </p>
+      </div>
     </div>
   );
 }
 
-export default Login;
+export default Profile;
