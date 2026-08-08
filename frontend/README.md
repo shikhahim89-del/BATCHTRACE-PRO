@@ -1,41 +1,85 @@
-# BatchTrace Pro
+# 🚀 BatchTrace Pro  
+### AI-Based Batch Tracking & Analysis System
 
-## 📌 Project Description
-BatchTrace Pro is a web application built using Flask (backend) and React (frontend). It allows users to manage and track batches using REST APIs with full CRUD functionality.
+BatchTrace Pro is a full-stack web application that allows users to manage product batches and analyze them using AI logic to determine whether they are **Safe ✅** or **Expired ❌**.
 
----
-
-## 🚀 Features
-- Add new batches
-- View all batches
-- Delete batches
-- REST API integration with frontend
-- Data stored in MongoDB Atlas (cloud database)
+This project is developed as part of the **TBI-GEU Internship**.
 
 ---
 
-## 🛠 Tech Stack
-- Frontend: React
-- Backend: Flask (Python)
-- Database: MongoDB Atlas
-- API Testing: Thunder Client
+## 🌐 Live Demo  
+👉 https://batchtrace-pro.vercel.app  
+
 
 ---
 
-## 🗄️ Database Used
-We used **MongoDB Atlas** as our cloud database.
-
-### Why MongoDB?
-- Scalable and cloud-based
-- No local setup required
-- Easy integration with Flask
-
-Unlike SQL databases, MongoDB uses **collections and documents** instead of tables and rows.
+## 💻 GitHub Repository  
+👉 https://github.com/shikhahim89-del/batchtrace-pro  
 
 ---
 
-## ⚙️ Setup Database
+## 📌 Features  
 
-1. Create a MongoDB Atlas cluster
-2. Get your connection string
-3. Create a `.env` file and add:
+### 🌐 Pages Included  
+
+- 🏠 **Home Page** – Introduction and overview  
+- ℹ️ **About Page** – Project details and purpose  
+- 🔐 **Login Page** – User authentication  
+- 📝 **Signup Page** – New user registration  
+- 📊 **Dashboard** – Manage and view batches  
+- 👤 **Profile Page** – User profile details  
+
+---
+
+### ⚙️ Core Functionalities  
+
+- ➕ Add new product batches  
+- 🤖 Automatic AI-based batch analysis (Safe / Expired)  
+- 📋 View all batches in dashboard  
+- 🗑 Delete batches  
+- 📜 Certificate verification popup  
+
+---
+
+## 🧠 AI Feature  
+
+The system automatically analyzes each batch using simple logic:
+
+- Even-length batch ID → **Safe ✅**  
+- Odd-length batch ID → **Expired ❌**
+
+This simulates AI-based decision-making.
+
+---
+
+## 🛠 Tech Stack  
+
+### Frontend  
+- React.js  
+- HTML, CSS  
+
+### Backend  
+- Flask (Python)  
+
+### Database  
+- MongoDB Atlas (Cloud)  
+
+---
+
+## 🗄️ Database  
+
+We use **MongoDB Atlas** for cloud data storage.
+
+### Why MongoDB?  
+- NoSQL (flexible document structure)  
+- Scalable and cloud-based  
+- Easy integration with Flask  
+
+---
+
+## ⚙️ Installation & Setup  
+
+### 1️⃣ Clone Repository  
+```bash
+git clone https://github.com/shikhahim89-del/batchtrace-pro.git
+cd batchtrace-pro

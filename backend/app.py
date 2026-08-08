@@ -14,16 +14,9 @@ load_dotenv()
 app = Flask(__name__)
 
 # ✅ CORS
-CORS(app, supports_credentials=True)
+CORS(app)
 bcrypt = Bcrypt(app)
 JWT_SECRET = os.getenv("JWT_SECRET", "secret123")
-
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-    return response
 
 # ---------------- DATABASE ----------------
 client = MongoClient(os.getenv("MONGO_URI"))
@@ -52,11 +45,10 @@ def token_required(func):
         return func(*args, **kwargs)
     return wrapper
 
-
 # ---------------- REGISTER ----------------
 @app.route("/api/auth/register", methods=["POST"])
 def register():
-    data = request.get_json(force=True)
+    data = request.get_json()
 
     email = data.get("email", "").strip().lower()
     password = data.get("password", "").strip()
@@ -78,11 +70,10 @@ def register():
 
     return jsonify({"message": "Signup successful"}), 201
 
-
 # ---------------- LOGIN ----------------
 @app.route("/api/auth/login", methods=["POST"])
 def login():
-    data = request.get_json(force=True)
+    data = request.get_json()
 
     email = data.get("email", "").strip().lower()
     password = data.get("password", "").strip()
@@ -102,7 +93,6 @@ def login():
     }, JWT_SECRET, algorithm="HS256")
 
     return jsonify({"token": token})
-
 
 # ---------------- ADD BATCH ----------------
 @app.route("/api/batches", methods=["POST"])
@@ -137,7 +127,7 @@ def add_batch():
         })
 
         return jsonify({
-            "message": "Batch added with AI ✅",
+            "message": "Batch added",
             "status": status,
             "ai_result": ai_result
         })
@@ -145,7 +135,6 @@ def add_batch():
     except Exception as e:
         print("BATCH ERROR:", e)
         return jsonify({"error": "Server error"}), 500
-
 
 # ---------------- GET BATCHES ----------------
 @app.route("/api/batches", methods=["GET"])
@@ -162,71 +151,101 @@ def get_batches():
 
     return jsonify(batches)
 
+# ---------------- ANALYZE ----------------
+@app.route("/api/batches/analyze/<id>", methods=["POST"])
+def analyze_batch(id):
+    try:
+        if not ObjectId.is_valid(id):
+            return jsonify({"error": "Invalid ID"}), 400
 
-# ---------------- DELETE (🔥 FIXED) ----------------
+        batch = batches_collection.find_one({"_id": ObjectId(id)})
+
+        if not batch:
+            return jsonify({"error": "Batch not found"}), 404
+
+        expiry = batch.get("expiry")
+        today = datetime.utcnow().date()
+        expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
+
+        if expiry_date < today:
+            status = "Rejected"
+            ai_result = f"❌ EXPIRED | {batch['batch']} ({batch['product']})"
+        else:
+            status = "Approved"
+            ai_result = f"✅ SAFE | {batch['batch']} ({batch['product']}) | Expiry: {expiry}"
+
+        # ✅ UPDATE DB
+        batches_collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {
+                "status": status,
+                "ai_result": ai_result
+            }}
+        )
+
+        return jsonify({
+            "result": ai_result,
+            "status": status
+        })
+
+    except Exception as e:
+        print("ANALYZE ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
+
+# ---------------- DELETE ----------------
 @app.route("/api/batches/<id>", methods=["DELETE"])
 def delete_batch(id):
     try:
-        print("DELETE ID RECEIVED:", id)
-
-        # ✅ Step 1: check id format
         if not ObjectId.is_valid(id):
-            print("INVALID OBJECT ID")
             return jsonify({"error": "Invalid ID"}), 400
 
-        # ✅ Step 2: convert safely
-        obj_id = ObjectId(id)
+        result = batches_collection.delete_one({"_id": ObjectId(id)})
 
-        # ✅ Step 3: delete
-        result = batches_collection.delete_one({"_id": obj_id})
-
-        print("DELETE RESULT:", result.deleted_count)
-
-        # ✅ Step 4: check result
         if result.deleted_count == 0:
-            return jsonify({"error": "Batch not found"}), 404
+            return jsonify({"error": "Not found"}), 404
 
-        return jsonify({"message": "Deleted successfully"}), 200
+        return jsonify({"message": "Deleted successfully"})
 
     except Exception as e:
-        print("🔥 DELETE CRASH ERROR:", str(e))
-        return jsonify({"error": str(e)}), 500
-
+        print("DELETE ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
 
 # ---------------- UPDATE ----------------
 @app.route("/api/batches/<id>", methods=["PUT"])
-@token_required
 def update_batch(id):
-    data = request.get_json(force=True)
+    try:
+        data = request.get_json()
 
-    batch = data.get("batch")
-    product = data.get("product")
-    expiry = data.get("expiry")
+        batch = data.get("batch")
+        product = data.get("product")
+        expiry = data.get("expiry")
 
-    today = datetime.utcnow().date()
-    expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
+        today = datetime.utcnow().date()
+        expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
 
-    if expiry_date < today:
-        status = "Rejected"
-        ai_result = f"❌ EXPIRED | {batch} ({product})"
-    else:
-        status = "Approved"
-        ai_result = f"✅ SAFE | {batch} ({product}) | Expiry: {expiry}"
+        if expiry_date < today:
+            status = "Rejected"
+            ai_result = f"❌ EXPIRED | {batch} ({product})"
+        else:
+            status = "Approved"
+            ai_result = f"✅ SAFE | {batch} ({product}) | Expiry: {expiry}"
 
-    batches_collection.update_one(
-        {"_id": ObjectId(id)},
-        {"$set": {
-            "batch": batch,
-            "product": product,
-            "expiry": expiry,
-            "status": status,
-            "ai_result": ai_result
-        }}
-    )
+        batches_collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {
+                "batch": batch,
+                "product": product,
+                "expiry": expiry,
+                "status": status,
+                "ai_result": ai_result
+            }}
+        )
 
-    return jsonify({"message": "Updated with AI ✅"})
+        return jsonify({"message": "Updated successfully"})
 
-# --------------- PROFILE --------------
+    except Exception as e:
+        print("UPDATE ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
 
 # ---------------- PROFILE ----------------
 @app.route("/api/auth/profile", methods=["GET"])
@@ -241,7 +260,7 @@ def get_profile():
             return jsonify({"error": "User not found"}), 404
 
         return jsonify({
-            "name": user.get("name", "User"),
+            "name": user.get("name"),
             "email": user.get("email"),
             "user_id": str(user["_id"])
         })
@@ -250,14 +269,11 @@ def get_profile():
         print("PROFILE ERROR:", e)
         return jsonify({"error": "Server error"}), 500
 
-
 # ---------------- HOME ----------------
 @app.route("/")
 def home():
-    return "Backend is running 🚀"
-
+    return "Backend running 🚀"
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)

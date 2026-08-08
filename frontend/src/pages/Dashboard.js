@@ -8,7 +8,6 @@ function Dashboard() {
   const [batch, setBatch] = useState("");
   const [product, setProduct] = useState("");
   const [expiry, setExpiry] = useState("");
-  const [loadingId, setLoadingId] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +16,7 @@ function Dashboard() {
   // ✅ LOGOUT
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "/login"; // ✅ FIXED
+    window.location.href = "/login";
   };
 
   // ✅ FETCH
@@ -45,13 +44,13 @@ function Dashboard() {
   useEffect(() => {
     if (!token) {
       alert("Login first ❌");
-      window.location.href = "/login"; // ✅ FIXED
+      window.location.href = "/login";
     } else {
       fetchBatches();
     }
   }, [token, fetchBatches]);
 
-  // ✅ ADD
+  // ✅ ADD (ALSO DOES ANALYZE)
   const addBatch = async () => {
     if (!batch || !product || !expiry) {
       setError("All fields required ⚠️");
@@ -76,47 +75,14 @@ function Dashboard() {
       setExpiry("");
       setError("");
 
-      fetchBatches();
+      fetchBatches(); // refresh list
     } catch (err) {
       console.error(err);
       setError(err.message || "Add failed ❌");
     }
   };
 
-  // ✅ ANALYZE
-  const analyzeBatch = async (id) => {
-    setLoadingId(id);
-
-    try {
-      const res = await fetch(`${API}/api/batches/analyze/${id}`, {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      setBatches((prev) =>
-        prev.map((b) =>
-          b._id === id
-            ? {
-                ...b,
-                ai_result: data.result,
-                status:
-                  data.result === "SAFE" ? "Approved" : "Expired",
-              }
-            : b
-        )
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Analyze failed ❌");
-    } finally {
-      setLoadingId(null);
-    }
-  };
+  // ❌ REMOVED analyze API (NOT NEEDED)
 
   // ✅ DELETE
   const handleDelete = async (id) => {
@@ -151,7 +117,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="container">
+    <div>
       <h1>🚀 Batch Dashboard</h1>
 
       <button onClick={handleLogout} style={{ float: "right" }}>
@@ -207,41 +173,30 @@ function Dashboard() {
             <tbody>
               {batches.map((b) => (
                 <tr key={b._id}>
-                  <td>{b.batchId || b.batch}</td>
-                  <td>{b.productName || b.product}</td>
+                  <td>{b.batch}</td>
+                  <td>{b.product}</td>
 
                   <td>
                     {!b.ai_result ? (
                       <span className="badge gray">Pending ⏳</span>
                     ) : b.status === "Approved" ? (
-                      <span className="badge green">
-                        Certified ✅
-                      </span>
+                      <span className="badge green">Certified ✅</span>
                     ) : (
                       <span className="badge red">Expired ❌</span>
                     )}
                   </td>
 
-                  <td>
-                    {loadingId === b._id
-                      ? "Analyzing..."
-                      : b.ai_result || "Not analyzed"}
-                  </td>
+                  <td>{b.ai_result || "Not available"}</td>
 
                   <td>
                     {(() => {
-                      const exp = b.expiryDate || b.expiry;
-                      const status = getExpiryStatus(exp);
+                      const status = getExpiryStatus(b.expiry);
 
                       return (
                         <>
-                          {new Date(exp).toLocaleDateString(
-                            "en-GB"
-                          )}
+                          {new Date(b.expiry).toLocaleDateString("en-GB")}
                           <br />
-                          <span
-                            className={`badge ${status.class}`}
-                          >
+                          <span className={`badge ${status.class}`}>
                             {status.text}
                           </span>
                         </>
@@ -250,26 +205,16 @@ function Dashboard() {
                   </td>
 
                   <td>
-                    <button
-                      onClick={() => analyzeBatch(b._id)}
-                    >
-                      Analyze
-                    </button>
+                    {/* ❌ ANALYZE BUTTON REMOVED */}
 
-                    <button
-                      onClick={() => handleDelete(b._id)}
-                    >
+                    <button onClick={() => handleDelete(b._id)}>
                       🗑 Delete
                     </button>
 
                     <button
                       onClick={() =>
                         alert(
-                          `Certificate Verified ✅\n\nProduct: ${
-                            b.productName || b.product
-                          }\nBatch: ${
-                            b.batchId || b.batch
-                          }`
+                          `Certificate Verified ✅\n\nProduct: ${b.product}\nBatch: ${b.batch}`
                         )
                       }
                     >

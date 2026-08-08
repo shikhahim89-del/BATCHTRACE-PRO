@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const express = require("express");
 const mongoose = require("mongoose");
 const passport = require("passport");
@@ -9,47 +8,46 @@ const cors = require("cors");
 
 const app = express();
 
-
 // ✅ BODY PARSER
 app.use(express.json());
 
-
-// ✅ CORS (IMPORTANT FIX)
+// ✅ CORS (FIXED)
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
       "https://batchtrace-pro.vercel.app",
-      "https://batchtrace-pro-v2.vercel.app"
+      "https://batchtrace-pro-v2.vercel.app",
     ],
     credentials: true,
   })
 );
 
+// ✅ PREFLIGHT (IMPORTANT)
+app.options("*", cors());
 
 // ✅ ROOT TEST
 app.get("/", (req, res) => {
   res.send("SERVER OK ✅");
 });
 
-
-// ✅ SESSION (FIX: add cookie settings)
+// ✅ SESSION
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // change to true in production (https)
+      secure: false, // ⚠️ set true in production (https)
     },
   })
 );
 
-
-// ✅ PASSPORT
+// ✅ PASSPORT INIT
 app.use(passport.initialize());
 app.use(passport.session());
 
+// ✅ GOOGLE STRATEGY
 passport.use(
   new GoogleStrategy(
     {
@@ -66,31 +64,26 @@ passport.use(
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-
-// ✅ ROUTES (MAKE SURE FILE EXISTS)
+// ✅ ROUTES
 const authRoutes = require("./routes/auth");
 const batchRoutes = require("./routes/batches");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/batches", batchRoutes);
 
-
-// ✅ ERROR HANDLER (IMPORTANT)
+// ✅ 404 HANDLER
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found ❌" });
 });
 
-
-// ✅ MONGODB
+// ✅ DB CONNECT
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch((err) => console.log("Mongo Error:", err));
 
-
 // ✅ START SERVER
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT} 🚀`);
 });
