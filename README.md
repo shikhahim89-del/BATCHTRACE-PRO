@@ -33,22 +33,22 @@ This project is developed as part of the **TBI-GEU Internship**.
 ## 📸 Screenshots
 
 ### 🏠 Home Page
-![Home](assets/homepage.png)
+![homepage](assets/homepage.png)
 
 ### About Page
-![About](assets/about.png)
+![about](assets/about.png)
 
 ### 📊 Dashboard
-![Dashboard](assets/Dashboardpage.png)
+![Dashboardpage](assets/Dashboardpage.png)
 
 ### Login Page
-![Login](assets/Loginpagenew.png)
+![Loginpagenew](assets/Loginpagenew.png)
 
 ### Profile
-![Profile](assets/Profilepagenew.png)
+![Profilepage](assets/Profilepagenew.png)
 
 ### Signup Page
-![Signup](assets/Signuppage.png)
+![Signuppage](assets/Signuppage.png)
 
 
 ### ⚙️ Core Functionalities  
