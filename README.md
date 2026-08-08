@@ -22,7 +22,7 @@ This project is developed as part of the **TBI-GEU Internship**.
 
 ### 🌐 Pages Included  
 
-- 🏠 **Home Page** – Introduction and overview  
+- 🏠 **Home Page** – Introduction and overview 
 - ℹ️ **About Page** – Project details and purpose  
 - 🔐 **Login Page** – User authentication  
 - 📝 **Signup Page** – New user registration  
@@ -30,6 +30,26 @@ This project is developed as part of the **TBI-GEU Internship**.
 - 👤 **Profile Page** – User profile details  
 
 ---
+## 📸 Screenshots
+
+### 🏠 Home Page
+![Home](assets/homepage.png)
+
+### About Page
+![About](assets/about.png)
+
+### 📊 Dashboard
+![Dashboard](assets/Dashboardpage.png)
+
+### Login Page
+![Login](assets/Loginpagenew.png)
+
+### Profile
+![Profile](assets/Profilepagenew.png)
+
+### Signup Page
+![Signup](assets/Signuppage.png)
+
 
 ### ⚙️ Core Functionalities  
 
@@ -83,5 +103,3 @@ We use **MongoDB Atlas** for cloud data storage.
 ```bash
 git clone https://github.com/shikhahim89-del/batchtrace-pro.git
 cd batchtrace-pro
-#
-Final submission update
