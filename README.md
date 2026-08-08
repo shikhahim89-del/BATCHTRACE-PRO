@@ -1,101 +1,87 @@
-📦 BatchTrace Pro 🚀
+# 🚀 BatchTrace Pro  
+### AI-Based Batch Tracking & Analysis System
+
+BatchTrace Pro is a full-stack web application that allows users to manage product batches and analyze them using AI logic to determine whether they are **Safe ✅** or **Expired ❌**.
+
+This project is developed as part of the **TBI-GEU Internship**.
+
+---
+
+## 🌐 Live Demo  
+👉 https://batchtrace-pro.vercel.app  
 
 
-📌 Project Description
+---
 
+## 💻 GitHub Repository  
+👉 https://github.com/shikhahim89-del/batchtrace-pro  
 
-BatchTrace Pro is a full-stack web application built using React (Frontend) and Flask (Backend).
+---
 
-It provides authentication, batch tracking, and AI-based analysis with a protected dashboard.
+## 📌 Features  
 
-🚀 Features
+### 🌐 Pages Included  
 
-🔑 Authentication
+- 🏠 **Home Page** – Introduction and overview  
+- ℹ️ **About Page** – Project details and purpose  
+- 🔐 **Login Page** – User authentication  
+- 📝 **Signup Page** – New user registration  
+- 📊 **Dashboard** – Manage and view batches  
+- 👤 **Profile Page** – User profile details  
 
-User Registration
-User Login
-Logout
-JWT-based Authentication
-Google OAuth Login
-Protected Routes (Frontend + Backend)
-Rate Limiting (5 requests/min)
-Input Validation
+---
 
-📊 Dashboard (Protected)
+### ⚙️ Core Functionalities  
 
-➕ Create Batch
-📖 Read/View Batches
-✏️ Update Batch
-❌ Delete Batch
+- ➕ Add new product batches  
+- 🤖 Automatic AI-based batch analysis (Safe / Expired)  
+- 📋 View all batches in dashboard  
+- 🗑 Delete batches  
+- 📜 Certificate verification popup  
 
-👉 (Full CRUD functionality)
+---
 
+## 🧠 AI Feature  
 
-🤖 AI Feature
+The system automatically analyzes each batch using simple logic:
 
-Analyze batch data
-Loading state handling
-Output display
-Error handling
+- Even-length batch ID → **Safe ✅**  
+- Odd-length batch ID → **Expired ❌**
 
-🌐 Live Demo
+This simulates AI-based decision-making.
 
-👉 https://batchtrace-pro.vercel.app
+---
 
+## 🛠 Tech Stack  
 
-🧠 Tech Stack
+### Frontend  
+- React.js  
+- HTML, CSS  
 
-Frontend
-React.js
-Backend
-Flask (Python)
-Flask-JWT-Extended
-Flask-Limiter
-Authlib (Google OAuth)
-Database
-MongoDB Atlas
+### Backend  
+- Flask (Python)  
 
-⚙️ Run Locally
+### Database  
+- MongoDB Atlas (Cloud)  
 
-🔹 Backend
-cd backend
-pip install -r requirements.txt
-python app.py
+---
 
-🔹 Environment Variables
-MONGO_URI=your_mongo_uri
-JWT_SECRET=your_secret
-GOOGLE_CLIENT_ID=your_client_id
-GOOGLE_CLIENT_SECRET=your_secret
+## 🗄️ Database  
 
-🔹 Frontend
-cd frontend
-npm install
-npm start
+We use **MongoDB Atlas** for cloud data storage.
 
+### Why MongoDB?  
+- NoSQL (flexible document structure)  
+- Scalable and cloud-based  
+- Easy integration with Flask  
 
-📌 Notes
+---
 
-No hardcoded data is used — all data comes from API
-Fully responsive design (mobile, tablet, desktop)
-Authenticated dashboard access only
+## ⚙️ Installation & Setup  
 
-## 🌐 Live Deployment
-
-- Frontend URL: https://batchtrace-pro.vercel.app
-- Backend URL: https://batchtrace-pro.onrender.com
-
-## ⚙️ Tech Stack
-
-- Frontend: React (Vite)
-- Backend: Node.js + Express
-- Database: MongoDB
-- Deployment:
-  - Frontend: Vercel
-  - Backend: Render
-
-## ⚠️ Known Limitations (Free Tier)
-
-- Render backend sleeps after 15 minutes of inactivity
-- First request may take 30–60 seconds to respond
-- Limited performance due to free hosting
+### 1️⃣ Clone Repository  
+```bash
+git clone https://github.com/shikhahim89-del/batchtrace-pro.git
+cd batchtrace-pro
+#
+Final submission update
