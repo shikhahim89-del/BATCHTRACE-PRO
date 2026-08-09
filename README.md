@@ -45,7 +45,7 @@ This project is developed as part of the **TBI-GEU Internship**.
 ![Loginpagenew](assets/Loginpagenew.png)
 
 ### Profile
-![Profilepage](assets/Profilepagenew.png)
+![Profilepage](assets/Profilepage.png)
 
 ### Signup Page
 ![Signuppage](assets/Signuppage.png)
